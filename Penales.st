@@ -1,13 +1,5 @@
-!classDefinition: #EstiloDePenales category: #Penales!
-Object subclass: #EstiloDePenales
-	instanceVariableNames: ''
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'Penales'!
-
-
 !classDefinition: #EstiloDeArquero category: #Penales!
-EstiloDePenales subclass: #EstiloDeArquero
+Object subclass: #EstiloDeArquero
 	instanceVariableNames: 'arquero'
 	classVariableNames: ''
 	poolDictionaries: ''
@@ -108,7 +100,7 @@ mePateanAMatarConUnaPlayeraEnUnJuego: unJuego
 
 
 !classDefinition: #EstiloDeDelantero category: #Penales!
-EstiloDePenales subclass: #EstiloDeDelantero
+Object subclass: #EstiloDeDelantero
 	instanceVariableNames: 'delantero'
 	classVariableNames: ''
 	poolDictionaries: ''
@@ -499,44 +491,41 @@ gol
 	puntajeDelantero := 1! !
 
 
-!Penales methodsFor: 'protocolo' stamp: 'HAW 13/Sep/2026, 5:54:21 pm (UTC)'!
+!Penales methodsFor: 'protocolo' stamp: 'HAW 18/Sep/2026, 6:56:31 pm (UTC)'!
 protocoloArqueroQueAnticipaYDelanteroTiraAColocarConJabulani
+
 	var calcularFuerzaResultanteDeTiroCuandoPelotaJabulaniYDelanteroColocador.
 	var calcularFuerzaResultanteDeAtajadaCuandoArqueroAnticipadorDelanteroColocadorYPelotaJabulani.
 	 
-	var validarGol.! !
+	var validarGol: [direccionDeRemate = direccionDeAtajada]! !
 
-!Penales methodsFor: 'protocolo' stamp: 'HAW 13/Sep/2026, 5:53:45 pm (UTC)'!
+!Penales methodsFor: 'protocolo' stamp: 'HAW 18/Sep/2026, 6:40:15 pm (UTC)'!
 protocoloArqueroQueAnticipaYDelanteroTiraAColocarUnaPlayera
+
 	var calcularFuerzaResultanteDeTiroCuandoPelotaPlayeraYDelanteroColocador.
 	var calcularFuerzaResultanteDeAtajadaCuandoArqueroAnticipadorYPelotaPlayera.
 	 
-	var validarGol. ! !
+	var validarGol: [direccionDeRemate = direccionDeAtajada ]! !
 
-!Penales methodsFor: 'protocolo' stamp: 'HAW 13/Sep/2026, 6:22:31 pm (UTC)'!
+!Penales methodsFor: 'protocolo' stamp: 'HAW 18/Sep/2026, 6:56:01 pm (UTC)'!
 protocoloArqueroQueAnticipaYDelanteroTiraAMatarConPlayera
 	
-	(arco containsPoint: var calcularDireccionRemateResultanteCuandoTiranAMatarConPlayera) 
-		ifTrue: [
-			( var getDireccionDeRemateResultante y = direccionDeAtajada y and: [var getFuerzaResultanteDeTiro <= var 
-				getFuerzaResultanteDeAtajada])
-			ifTrue:[ self atajada ]
-			ifFalse:[ self gol]
-		]
-		ifFalse: [ "El tipazo homenajeo al Pipa Benemuerto" self atajada]! !
+	| coordenadaDeTiroEnY |
+	var calcularDireccionRemateResultanteCuandoTiranAMatarConPlayera.
+	
+	coordenadaDeTiroEnY := var getDireccionDeRemateResultante y.
+	var validarGol: [coordenadaDeTiroEnY = direccionDeAtajada y].
+	! !
 
-!Penales methodsFor: 'protocolo' stamp: 'HAW 13/Sep/2026, 6:22:40 pm (UTC)'!
+!Penales methodsFor: 'protocolo' stamp: 'HAW 18/Sep/2026, 6:56:08 pm (UTC)'!
 protocoloArqueroQueAnticipaYDelanteroTiraAMatarUnaJabulani
 	
+	| coordenadaDeTiroEnX |
+	var calcularDireccionRemateResultanteCuandoTiranAMatarConJabulani.
 	var calcularFuerzaResultanteDeTiroCuandoPelotaJabulaniYDelanteroMatador. 
-	(arco containsPoint: var calcularDireccionRemateResultanteCuandoTiranAMatarConJabulani) 
-		ifTrue: [
-			( var getDireccionDeRemateResultante x = direccionDeAtajada x and: [var getFuerzaResultanteDeTiro <= var 
-				getFuerzaResultanteDeAtajada])
-			ifTrue:[ self atajada ]
-			ifFalse:[ self gol]
-		]
-		ifFalse: [ "El tipazo homenajeo al Pipa Benemuerto" self atajada]! !
+	coordenadaDeTiroEnX := var getDireccionDeRemateResultante x.
+	
+	var validarGol: [coordenadaDeTiroEnX = direccionDeAtajada x].! !
 
 !Penales methodsFor: 'protocolo' stamp: 'HAW 13/Sep/2026, 6:22:48 pm (UTC)'!
 protocoloArqueroSeADelantaYDelanteroMataConJabulani
@@ -550,14 +539,13 @@ protocoloArqueroSeADelantaYDelanteroMataConPlayera
 	var calcularDireccionRemateResultanteCuandoTiranAMatarConPlayera. 
 	self atajada.! !
 
-!Penales methodsFor: 'protocolo' stamp: 'HAW 13/Sep/2026, 6:23:03 pm (UTC)'!
+!Penales methodsFor: 'protocolo' stamp: 'HAW 18/Sep/2026, 6:56:22 pm (UTC)'!
 protocoloArqueroSeADelantaYDelanteroTiraAColocarConJabulani
 	
-	(direccionDeRemate x = direccionDeAtajada x and: [var calcularFuerzaResultanteDeTiroCuandoPelotaJabulaniYDelanteroColocador <= 
-		arquero fuerza])
-		ifTrue: [self atajada] 
-		ifFalse: [self gol].
-! !
+	|coordenadaEnX|
+	var calcularFuerzaResultanteDeTiroCuandoPelotaJabulaniYDelanteroColocador .
+	coordenadaEnX := var getDireccionRemateResultante x.​ 
+	var validarGol: [ coordenadaEnX = direccionDeAtajada x].! !
 
 !Penales methodsFor: 'protocolo' stamp: 'HAW 13/Sep/2026, 2:37:56 pm (UTC)'!
 protocoloArqueroSeADelantaYDelanteroTiraAColocarConPlayera
@@ -628,7 +616,6 @@ TipoDePelota subclass: #Jabulani
 delanteroMePatea: unDelantero contraArquero: unArquero enUnJuego: unJuego
 
 	pelota sosJabulaniYDelanteroTePatea: unDelantero contraArquero: unArquero enUnJuego: unJuego ! !
-
 
 
 !classDefinition: #Playera category: #Penales!
@@ -718,12 +705,14 @@ calcularFuerzaResultanteDeTiroCuandoPelotaPlayeraYDelanteroColocador
 	^ fuerzaResultanteDeTiro.! !
 
 
-!VAR methodsFor: 'getters' stamp: 'HAW 12/Sep/2026, 10:14:52 pm (UTC)'!
+!VAR methodsFor: 'getters' stamp: 'HAW 18/Sep/2026, 6:26:22 pm (UTC)'!
 getDireccionDeRemateResultante
+	
 	^ direccionDeRemate ! !
 
-!VAR methodsFor: 'getters' stamp: 'HAW 13/Sep/2026, 5:30:58 pm (UTC)'!
+!VAR methodsFor: 'getters' stamp: 'HAW 18/Sep/2026, 6:26:26 pm (UTC)'!
 getDireccionRemateResultante
+	
 	^direccionDeRemate ! !
 
 !VAR methodsFor: 'getters' stamp: 'HAW 13/Sep/2026, 6:16:49 pm (UTC)'!
@@ -739,12 +728,12 @@ getFuerzaResultanteDeTiro
 	! !
 
 
-!VAR methodsFor: 'validacion' stamp: 'HAW 13/Sep/2026, 5:54:31 pm (UTC)'!
-validarGol
+!VAR methodsFor: 'validacion' stamp: 'HAW 18/Sep/2026, 6:38:35 pm (UTC)'!
+validarGol: verificacionDeDirecciones
 	
 	(arco containsPoint: direccionDeRemate) 
 		ifTrue: [
-			( direccionDeRemate = direccionDeAtajada and: [fuerzaResultanteDeTiro <= 
+			( verificacionDeDirecciones value and: [fuerzaResultanteDeTiro <= 
 				fuerzaResultanteDeAtajada ])
 			ifTrue:[ penales atajada ]
 			ifFalse:[ penales gol]
