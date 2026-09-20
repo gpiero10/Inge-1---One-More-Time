@@ -1,17 +1,28 @@
-!classDefinition: #EscapeDeFlota category: #'ISW-Parcial1-1C25'!
+!classDefinition: #EscapeDeFlota category: 'Smugglers Run'!
 Object subclass: #EscapeDeFlota
 	instanceVariableNames: 'flota'
 	classVariableNames: ''
 	poolDictionaries: ''
-	category: 'ISW-Parcial1-1C25'!
+	category: 'Smugglers Run'!
 
-!EscapeDeFlota methodsFor: 'as yet unclassified' stamp: 'HAW 18/Sep/2026, 7:18:06 pm (UTC)'!
+!EscapeDeFlota methodsFor: 'as yet unclassified' stamp: 'HAW 19/Sep/2026, 11:39:26 pm (UTC)'!
+assertCorrectitudDeSectores: sectoresAAtravesar returningWith: aReturningBlock
+
+	(sectoresAAtravesar size = 0) 
+	ifTrue: [^ aReturningBlock value: (self error: self class rutaVaciaDescripcionDeError)].
+	
+	(sectoresAAtravesar asSet size < sectoresAAtravesar size )
+	ifTrue: [^ aReturningBlock value: 
+		(self error: self class sectoresRepetidosDescripcionDeError)]! !
+
+!EscapeDeFlota methodsFor: 'as yet unclassified' stamp: 'HAW 20/Sep/2026, 1:48:32 am (UTC)'!
 atravesar: sectoresAAtravesar 
 
-	sectoresAAtravesar size = 0 ifTrue: [^ self error: self class rutaVaciaDescripcionDeError].
-	sectoresAAtravesar asSet size < sectoresAAtravesar size ifTrue: [^ self error: self class sectoresRepetidosDescripcionDeError].
+	self assertCorrectitudDeSectores: sectoresAAtravesar returningWith: [ :res | ^ res ].
 	
-	flota do: [:nave | sectoresAAtravesar do: [:unSector | nave atravesandoSector: unSector ]].
+	flota do: [:nave | sectoresAAtravesar do: 
+		[:unSector | nave atravesandoSector: unSector ]].
+	
 	flota := flota select: [:nave | nave haSobrevivido ].
 	! !
 
@@ -23,13 +34,14 @@ haSobrevivido: aNave
 initializeWithFlota: unaFlota 
 	flota := unaFlota ! !
 
-!EscapeDeFlota methodsFor: 'as yet unclassified' stamp: 'gs 11/Sep/2026, 6:25:48 pm (UTC)'!
+!EscapeDeFlota methodsFor: 'as yet unclassified' stamp: 'HAW 19/Sep/2026, 11:39:36 pm (UTC)'!
 numeroDeSobrevivientesEs: aSmallInteger 
+	
 	^true! !
 
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
-!classDefinition: 'EscapeDeFlota class' category: #'ISW-Parcial1-1C25'!
+!classDefinition: 'EscapeDeFlota class' category: 'Smugglers Run'!
 EscapeDeFlota class
 	instanceVariableNames: ''!
 
@@ -62,242 +74,343 @@ enrolar: anArray
 	^ self new initializeWithFlota: anArray ! !
 
 
-!classDefinition: #Nave category: #'ISW-Parcial1-1C25'!
+!classDefinition: #Nave category: 'Smugglers Run'!
 Object subclass: #Nave
-	instanceVariableNames: 'tipo propulsor combustible nivelDeCasco manubrio escudos'
+	instanceVariableNames: 'tipo propulsor combustible nivelDeCasco manubrio escudos nivelDeCascoInicial'
 	classVariableNames: ''
 	poolDictionaries: ''
-	category: 'ISW-Parcial1-1C25'!
+	category: 'Smugglers Run'!
 
-!Nave methodsFor: 'init' stamp: 'gs 11/Sep/2026, 7:26:59 pm (UTC)'!
-initializeNaveDeTipo: unTipo conPropulsor: unTipoDePropulsor 
-	"Crucero Pesado -> Maniobravilidad: 50. Escudos: 100. Combustible: 50. NivelesDeDañoCasco: 5."
-	tipo := unTipo. 
+!Nave methodsFor: 'init' stamp: 'HAW 19/Sep/2026, 11:19:37 pm (UTC)'!
+initializeNaveconPropulsor: unTipoDePropulsor unaManiobravilidad: unaManiobravilidad
+ unaCantidadDeEscudos: unosEscudos unCasco: unaCantidadDeCasco yUnaCantidadDeNafta: unaCantDeNafta
+	
+	combustible := unaCantDeNafta .
+	nivelDeCasco := unaCantidadDeCasco .
+	manubrio := unaManiobravilidad .
+	escudos := unosEscudos .
 	propulsor := unTipoDePropulsor.
 	
-	tipo = #Crucero 
-		ifTrue:[	combustible := 50.
-				nivelDeCasco := 5.
-				manubrio := 50.
-				escudos := 100.].
-	
-	tipo = #Contrabandista 
-	ifTrue:[	combustible := 95.
-			nivelDeCasco := 2.
-			manubrio := 70.
-			escudos := 50.]
-! !
-
-!Nave methodsFor: 'init' stamp: 'gs 11/Sep/2026, 6:12:13 pm (UTC)'!
-valorCombustible: unValorEsperadoDeCombustible 
-	^combustible = unValorEsperadoDeCombustible ! !
+	nivelDeCascoInicial := unaCantidadDeCasco. "intocable, para la comparacion" ! !
 
 
-!Nave methodsFor: 'exec' stamp: 'gs 11/Sep/2026, 6:31:57 pm (UTC)'!
-atravesandoSector
-	combustible  := combustible - 10! !
-
-!Nave methodsFor: 'exec' stamp: 'HAW 18/Sep/2026, 7:45:53 pm (UTC)'!
+!Nave methodsFor: 'exec' stamp: 'HAW 20/Sep/2026, 1:42:28 am (UTC)'!
 atravesandoSector: aSectorGalactico 
 	combustible := combustible -10.
 	
-	(propulsor = #Gravitones and: [aSectorGalactico tipo = #Planetario] ) ifTrue: [
-		aSectorGalactico gravedad >  (manubrio * 0.8) ifTrue: [nivelDeCasco := nivelDeCasco -1].	
-	] ifFalse: [aSectorGalactico gravedad >  manubrio ifTrue: [nivelDeCasco := nivelDeCasco -1].].
-	
-	
-	(propulsor = #VelocidadLuz and: [aSectorGalactico tipo = #Planetario] ) ifFalse: [
-		aSectorGalactico radiacion >  escudos ifTrue: [nivelDeCasco := nivelDeCasco -1].	
-	].
+	propulsor atravieso: self unSectorGalactico: aSectorGalactico. 
 
-	(propulsor = #Estandar and: [aSectorGalactico tipo = #Asteroides] ) 
-		ifTrue: [
-			escudos := escudos -20.
-			aSectorGalactico radiacion >  escudos ifTrue: [nivelDeCasco := nivelDeCasco -1].	
-		].
-	
-	
 	! !
 
-!Nave methodsFor: 'exec' stamp: 'HAW 18/Sep/2026, 7:09:52 pm (UTC)'!
+!Nave methodsFor: 'exec' stamp: 'HAW 19/Sep/2026, 11:32:07 pm (UTC)'!
 dañada
 
-	self subclassResponsibility! !
+	^ nivelDeCasco < nivelDeCascoInicial ! !
 
 !Nave methodsFor: 'exec' stamp: 'gs 11/Sep/2026, 7:30:35 pm (UTC)'!
 destruida
 	^nivelDeCasco < 0! !
 
-!Nave methodsFor: 'exec' stamp: 'gs 11/Sep/2026, 7:06:24 pm (UTC)'!
+!Nave methodsFor: 'exec' stamp: 'HAW 19/Sep/2026, 5:49:35 pm (UTC)'!
 haSobrevivido
-	^ combustible >= 0 and: (nivelDeCasco > 0)! !
+	^ combustible >= 0 and: (nivelDeCasco >= 0)! !
 
-!Nave methodsFor: 'exec' stamp: 'HAW 18/Sep/2026, 7:25:50 pm (UTC)'!
-nivelDeDañoEs: unNivelDeDaño
-
-	self subclassResponsibility! !
+!Nave methodsFor: 'exec' stamp: 'HAW 19/Sep/2026, 11:31:48 pm (UTC)'!
+nivelDeDañoEs: unNivelDeDaño 
+	^ unNivelDeDaño  = (nivelDeCascoInicial - nivelDeCasco )! !
 
 !Nave methodsFor: 'exec' stamp: 'gs 11/Sep/2026, 7:07:44 pm (UTC)'!
 sinCombustible
 	^combustible <= 0 ! !
 
+!Nave methodsFor: 'exec' stamp: 'gs 11/Sep/2026, 6:12:13 pm (UTC)'!
+valorCombustible: unValorEsperadoDeCombustible 
+	^combustible = unValorEsperadoDeCombustible ! !
+
+
+!Nave methodsFor: 'excudos' stamp: 'HAW 19/Sep/2026, 11:32:22 pm (UTC)'!
+fuerzaDeEscudosEn: unaFuerzaDeEscudosEsperada
+
+	^ escudos  = unaFuerzaDeEscudosEsperada ! !
+
+
+!Nave methodsFor: 'interaccion entorno' stamp: 'HAW 20/Sep/2026, 1:03:46 am (UTC)'!
+atravesasteSectorDeAsteroidesALaVelocidadDeLaLuz
+	
+	escudos := 0.
+	self sufrirDaño.! !
+
+!Nave methodsFor: 'interaccion entorno' stamp: 'HAW 20/Sep/2026, 1:30:41 am (UTC)'!
+consumisEsteCombustible: unConsumo
+ 
+		
+	combustible := combustible - unConsumo.
+	! !
+
+!Nave methodsFor: 'interaccion entorno' stamp: 'HAW 20/Sep/2026, 12:55:18 am (UTC)'!
+sufrirDaño
+	nivelDeCasco := nivelDeCasco - 1! !
+
+!Nave methodsFor: 'interaccion entorno' stamp: 'HAW 20/Sep/2026, 12:52:54 am (UTC)'!
+sufrisDañoDeEscudosEn: unDaño
+	
+	escudos := escudos - unDaño ! !
+
+!Nave methodsFor: 'interaccion entorno' stamp: 'HAW 20/Sep/2026, 1:26:13 am (UTC)'!
+sufrisPertubacionEnEscudos: unDaño
+	
+	escudos := escudos *unDaño ! !
+
+!Nave methodsFor: 'interaccion entorno' stamp: 'HAW 20/Sep/2026, 1:43:40 am (UTC)'!
+sufrisPertubacionEnManubrio: unaPerturbacion 
+	
+	manubrio := manubrio * unaPerturbacion ! !
+
+!Nave methodsFor: 'interaccion entorno' stamp: 'HAW 20/Sep/2026, 1:00:34 am (UTC)'!
+tuManubrioEnfrentaEstaGravedad: gravedad.
+		
+	(gravedad >  manubrio ) ifTrue: [self sufrirDaño].
+! !
+
+!Nave methodsFor: 'interaccion entorno' stamp: 'HAW 20/Sep/2026, 12:55:03 am (UTC)'!
+tusEscudosEnfrentanEstaRadiacion: unaRadiacion
+	
+	(escudos < unaRadiacion) ifTrue: [self sufrirDaño.]! !
+
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
-!classDefinition: 'Nave class' category: #'ISW-Parcial1-1C25'!
+!classDefinition: 'Nave class' category: 'Smugglers Run'!
 Nave class
 	instanceVariableNames: ''!
 
-!Nave class methodsFor: 'instance creation' stamp: 'gs 11/Sep/2026, 6:07:13 pm (UTC)'!
-deTipo: unTipoDeNave conPropulsor: unTipoDePropulsor 
-	^ self new initializeNaveDeTipo: unTipoDeNave conPropulsor: unTipoDePropulsor 
+!Nave class methodsFor: 'instance creation' stamp: 'HAW 19/Sep/2026, 11:11:30 pm (UTC)'!
+conPropulsor: unTipoDePropulsor conManiobravilidad: unaManiobravilidad conEscudos: unosEscudos unNivelDeCasco: unaCantidadDeCasco yUnaCantidadDeCombustible: unaCantDeNafta
+	
+	^ self new initializeNaveconPropulsor: unTipoDePropulsor 
+		unaManiobravilidad: unaManiobravilidad
+		unaCantidadDeEscudos: unosEscudos
+		unCasco: unaCantidadDeCasco
+		yUnaCantidadDeNafta: unaCantDeNafta. ! !
+
+!Nave class methodsFor: 'instance creation' stamp: 'HAW 19/Sep/2026, 11:23:07 pm (UTC)'!
+initializeNaveContrabandistaConTipoDePropulsor: unPropulsor
+	
+	^ self conPropulsor: unPropulsor conManiobravilidad: 70 conEscudos: 50 
+	unNivelDeCasco: 2 yUnaCantidadDeCombustible: 95
+! !
+
+!Nave class methodsFor: 'instance creation' stamp: 'HAW 19/Sep/2026, 11:22:57 pm (UTC)'!
+initializeNaveCruceroConTipoDePropulsor: unPropulsor
+	
+	^ self conPropulsor: unPropulsor conManiobravilidad: 50 conEscudos: 100 
+	unNivelDeCasco: 5 yUnaCantidadDeCombustible: 50
+	
+	! !
+
+!Nave class methodsFor: 'instance creation' stamp: 'HAW 19/Sep/2026, 11:27:29 pm (UTC)'!
+initializeNaveInterceptorConTipoDePropulsor: unPropulsor
+	
+	^ self conPropulsor: unPropulsor conManiobravilidad: 90 conEscudos: 30 
+	unNivelDeCasco: 2 yUnaCantidadDeCombustible: 30
+	
 	! !
 
 
-!classDefinition: #Contrabandista category: #'ISW-Parcial1-1C25'!
-Nave subclass: #Contrabandista
+!classDefinition: #PropulsorDeNave category: 'Smugglers Run'!
+Object subclass: #PropulsorDeNave
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
-	category: 'ISW-Parcial1-1C25'!
+	category: 'Smugglers Run'!
 
-!Contrabandista methodsFor: 'exec' stamp: 'HAW 18/Sep/2026, 7:10:14 pm (UTC)'!
-dañada
+!PropulsorDeNave methodsFor: 'as yet unclassified' stamp: 'HAW 20/Sep/2026, 12:14:18 am (UTC)'!
+atravieso: unaNave unSectorGalactico: aSectorGalactico
 
-	^ nivelDeCasco  < 2! !
-
-!Contrabandista methodsFor: 'exec' stamp: 'HAW 18/Sep/2026, 7:25:50 pm (UTC)'!
-nivelDeDañoEs: unNivelDeDaño 
-	^ unNivelDeDaño  = (2 - nivelDeCasco )! !
-
-
-!Contrabandista methodsFor: 'init' stamp: 'HAW 18/Sep/2026, 7:16:12 pm (UTC)'!
-initializeConPropulsor: unPropulsor 
-	
-	
-	combustible := 95.
-	nivelDeCasco := 2.
-	manubrio := 70.
-	escudos := 50.
-	propulsor := unPropulsor.! !
-
-
-!Contrabandista methodsFor: 'excudos' stamp: 'HAW 18/Sep/2026, 7:38:17 pm (UTC)'!
-fuerzaDeEscudosEn: unaFuerzaDeEscudosEsperada 
-	
-	^ escudos = unaFuerzaDeEscudosEsperada ! !
-
-"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
-
-!classDefinition: 'Contrabandista class' category: #'ISW-Parcial1-1C25'!
-Contrabandista class
-	instanceVariableNames: ''!
-
-!Contrabandista class methodsFor: 'instance creation' stamp: 'HAW 18/Sep/2026, 7:15:43 pm (UTC)'!
-conPropulsor: unPropulsor 
-	
-	^self new initializeConPropulsor: unPropulsor ! !
+	self subclassResponsibility! !
 
 
-!classDefinition: #Crucero category: #'ISW-Parcial1-1C25'!
-Nave subclass: #Crucero
-	instanceVariableNames: 'tipoDePropulsor'
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'ISW-Parcial1-1C25'!
-
-!Crucero methodsFor: 'exec' stamp: 'gs 11/Sep/2026, 7:43:23 pm (UTC)'!
-dañada
-	^ nivelDeCasco  < 5! !
-
-!Crucero methodsFor: 'exec' stamp: 'HAW 18/Sep/2026, 7:25:58 pm (UTC)'!
-nivelDeDañoEs: unNivelDeDaño 
-	^ unNivelDeDaño  = (5 - nivelDeCasco )! !
-
-
-!Crucero methodsFor: 'init' stamp: 'HAW 18/Sep/2026, 7:12:14 pm (UTC)'!
-initializeConPropulsor: unTipoDePropulsor 
-
-	combustible := 50.
-	nivelDeCasco := 5.
-	manubrio := 50.
-	escudos := 100.
-	tipoDePropulsor := unTipoDePropulsor.! !
-
-"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
-
-!classDefinition: 'Crucero class' category: #'ISW-Parcial1-1C25'!
-Crucero class
-	instanceVariableNames: ''!
-
-!Crucero class methodsFor: 'instance creation' stamp: 'HAW 18/Sep/2026, 7:11:26 pm (UTC)'!
-conPropulsor: unTipoDePropulsor 
-	
-	^self new initializeConPropulsor: unTipoDePropulsor ! !
-
-
-!classDefinition: #Interceptor category: #'ISW-Parcial1-1C25'!
-Nave subclass: #Interceptor
+!classDefinition: #PropulsorEstandar category: 'Smugglers Run'!
+PropulsorDeNave subclass: #PropulsorEstandar
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
-	category: 'ISW-Parcial1-1C25'!
+	category: 'Smugglers Run'!
 
-!Interceptor methodsFor: 'as yet unclassified' stamp: 'HAW 18/Sep/2026, 7:10:07 pm (UTC)'!
-dañada
-
-	^ nivelDeCasco  < 2! !
-
-
-!Interceptor methodsFor: 'exec' stamp: 'HAW 18/Sep/2026, 7:25:50 pm (UTC)'!
-nivelDeDañoEs: unNivelDeDaño 
-	^ unNivelDeDaño  = (2 - nivelDeCasco )! !
+!PropulsorEstandar methodsFor: 'as yet unclassified' stamp: 'HAW 20/Sep/2026, 1:31:29 am (UTC)'!
+atravieso: unaNave unSectorGalactico: aSectorGalactico 
+	
+	aSectorGalactico teAtraviesaUnaNaveConPropulsorEstandar: unaNave. ! !
 
 
-!classDefinition: #SectorGalactico category: #'ISW-Parcial1-1C25'!
+!classDefinition: #PropulsorGravitones category: 'Smugglers Run'!
+PropulsorDeNave subclass: #PropulsorGravitones
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'Smugglers Run'!
+
+!PropulsorGravitones methodsFor: 'as yet unclassified' stamp: 'HAW 20/Sep/2026, 1:31:41 am (UTC)'!
+atravieso: unaNave unSectorGalactico: aSectorGalactico 
+
+	aSectorGalactico teAtraviesaUnaNaveConPropulsorGravitones: unaNave. ! !
+
+
+!classDefinition: #PropulsorVelocidadDeLuz category: 'Smugglers Run'!
+PropulsorDeNave subclass: #PropulsorVelocidadDeLuz
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'Smugglers Run'!
+
+!PropulsorVelocidadDeLuz methodsFor: 'as yet unclassified' stamp: 'HAW 20/Sep/2026, 1:32:09 am (UTC)'!
+atravieso: unaNave unSectorGalactico: aSectorGalactico 
+	
+	aSectorGalactico teAtraviesaUnaNaveConPropulsorVelocidadLuz: unaNave. ! !
+
+
+!classDefinition: #SectorGalactico category: 'Smugglers Run'!
 Object subclass: #SectorGalactico
-	instanceVariableNames: 'tipo gravedad radiacion'
+	instanceVariableNames: 'gravedad radiacion'
 	classVariableNames: ''
 	poolDictionaries: ''
-	category: 'ISW-Parcial1-1C25'!
+	category: 'Smugglers Run'!
 
-!SectorGalactico methodsFor: 'as yet unclassified' stamp: 'gs 11/Sep/2026, 6:48:17 pm (UTC)'!
-initializeSectorDeTipo: unTipo conGravedad: unaGravedad yRadiacion: unaRadiacion 
-	tipo := unTipo.
+!SectorGalactico methodsFor: 'as yet unclassified' stamp: 'HAW 20/Sep/2026, 12:30:10 pm (UTC)'!
+conGravedad: unaGravedad yRadiacion: unaRadiacion 
+	
 	gravedad := unaGravedad.
 	radiacion := unaRadiacion.​ 		! !
 
 
-!SectorGalactico methodsFor: 'getter' stamp: 'gs 11/Sep/2026, 7:22:59 pm (UTC)'!
-gravedad
-	
-	^gravedad! !
 
-!SectorGalactico methodsFor: 'getter' stamp: 'gs 11/Sep/2026, 7:28:52 pm (UTC)'!
-radiacion
-	^radiacion! !
+!SectorGalactico methodsFor: 'visitas' stamp: 'HAW 20/Sep/2026, 12:26:09 am (UTC)'!
+teAtraviesaUnaNaveConPropulsorEstandar: unaNave
 
-!SectorGalactico methodsFor: 'getter' stamp: 'HAW 18/Sep/2026, 7:21:25 pm (UTC)'!
-tipo 
-	^tipo! !
+	self subclassResponsibility! !
+
+!SectorGalactico methodsFor: 'visitas' stamp: 'HAW 20/Sep/2026, 12:27:08 am (UTC)'!
+teAtraviesaUnaNaveConPropulsorGravitones: unaNave
+
+	self subclassResponsibility! !
+
+!SectorGalactico methodsFor: 'visitas' stamp: 'HAW 20/Sep/2026, 12:27:14 am (UTC)'!
+teAtraviesaUnaNaveConPropulsorVelocidadLuz: unaNave
+
+	self subclassResponsibility! !
 
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
-!classDefinition: 'SectorGalactico class' category: #'ISW-Parcial1-1C25'!
+!classDefinition: 'SectorGalactico class' category: 'Smugglers Run'!
 SectorGalactico class
 	instanceVariableNames: ''!
 
-!SectorGalactico class methodsFor: 'instance creation' stamp: 'gs 11/Sep/2026, 6:46:53 pm (UTC)'!
-deTipo: unTipoDeSector conGravedad: unaGravedad yRadiacion: unaRadiacion 
-	^self new initializeSectorDeTipo: unTipoDeSector conGravedad: unaGravedad yRadiacion: unaRadiacion 
+!SectorGalactico class methodsFor: 'instance creation' stamp: 'HAW 20/Sep/2026, 1:35:45 am (UTC)'!
+conGravedad: unaGravedad yRadiacion: unaRadiacion 
+	
+	^self new conGravedad: unaGravedad yRadiacion: unaRadiacion 
 ! !
 
 
-!classDefinition: #EscapeDeFlotaTests category: #'ISW-Parcial1-1C25'!
+!classDefinition: #SectorAsteroides category: 'Smugglers Run'!
+SectorGalactico subclass: #SectorAsteroides
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'Smugglers Run'!
+
+!SectorAsteroides methodsFor: 'visitas' stamp: 'HAW 20/Sep/2026, 1:47:00 am (UTC)'!
+teAtraviesaUnaNaveConPropulsorEstandar: unaNave
+	
+	unaNave sufrisDañoDeEscudosEn: 20; 
+		tusEscudosEnfrentanEstaRadiacion: radiacion. 
+	
+! !
+
+!SectorAsteroides methodsFor: 'visitas' stamp: 'HAW 20/Sep/2026, 1:46:38 am (UTC)'!
+teAtraviesaUnaNaveConPropulsorGravitones: unaNave
+	
+	unaNave consumisEsteCombustible: 10; 
+		tusEscudosEnfrentanEstaRadiacion: radiacion. 
+	
+! !
+
+!SectorAsteroides methodsFor: 'visitas' stamp: 'HAW 20/Sep/2026, 1:46:47 am (UTC)'!
+teAtraviesaUnaNaveConPropulsorVelocidadLuz: unaNave
+	
+	unaNave atravesasteSectorDeAsteroidesALaVelocidadDeLaLuz;
+		tusEscudosEnfrentanEstaRadiacion: radiacion.
+	
+! !
+
+
+!classDefinition: #SectorNebulosa category: 'Smugglers Run'!
+SectorGalactico subclass: #SectorNebulosa
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'Smugglers Run'!
+
+!SectorNebulosa methodsFor: 'visitas' stamp: 'HAW 20/Sep/2026, 1:47:30 am (UTC)'!
+teAtraviesaUnaNaveConPropulsorEstandar: unaNave
+	
+	unaNave sufrisPertubacionEnEscudos: 0.7;
+		tuManubrioEnfrentaEstaGravedad: gravedad; 
+		tusEscudosEnfrentanEstaRadiacion: radiacion. 
+	! !
+
+!SectorNebulosa methodsFor: 'visitas' stamp: 'HAW 20/Sep/2026, 1:47:10 am (UTC)'!
+teAtraviesaUnaNaveConPropulsorGravitones: unaNave
+	
+	unaNave consumisEsteCombustible: 20; 
+		tuManubrioEnfrentaEstaGravedad: gravedad;
+		tusEscudosEnfrentanEstaRadiacion: radiacion. 
+		 
+! !
+
+!SectorNebulosa methodsFor: 'visitas' stamp: 'HAW 20/Sep/2026, 1:47:06 am (UTC)'!
+teAtraviesaUnaNaveConPropulsorVelocidadLuz: unaNave
+	
+	unaNave consumisEsteCombustible: -10.
+	
+	! !
+
+
+!classDefinition: #SectorPlanetario category: 'Smugglers Run'!
+SectorGalactico subclass: #SectorPlanetario
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'Smugglers Run'!
+
+!SectorPlanetario methodsFor: 'visitas' stamp: 'HAW 20/Sep/2026, 1:47:57 am (UTC)'!
+teAtraviesaUnaNaveConPropulsorEstandar: unaNave 
+
+	unaNave tusEscudosEnfrentanEstaRadiacion: radiacion;
+		tuManubrioEnfrentaEstaGravedad: gravedad.
+	
+	! !
+
+!SectorPlanetario methodsFor: 'visitas' stamp: 'HAW 20/Sep/2026, 1:47:50 am (UTC)'!
+teAtraviesaUnaNaveConPropulsorGravitones: unaNave
+	
+	unaNave sufrisPertubacionEnManubrio: 0.8; 
+		tuManubrioEnfrentaEstaGravedad: gravedad.
+	
+! !
+
+!SectorPlanetario methodsFor: 'visitas' stamp: 'HAW 20/Sep/2026, 1:47:39 am (UTC)'!
+teAtraviesaUnaNaveConPropulsorVelocidadLuz: unaNave
+
+	unaNave tuManubrioEnfrentaEstaGravedad: gravedad.
+	! !
+
+
+!classDefinition: #EscapeDeFlotaTests category: 'Smugglers Run'!
 TestCase subclass: #EscapeDeFlotaTests
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
-	category: 'ISW-Parcial1-1C25'!
+	category: 'Smugglers Run'!
 
 !EscapeDeFlotaTests methodsFor: 'tests' stamp: 'NR 10/Jul/2025, 10:58:18 pm (UTC)'!
 test01LaFlotaDebeTenerAlMenosUnaNave
@@ -784,68 +897,69 @@ test20NaveAtravesandoSectorNebulosaUsandoGravitonesEsAfectadaPorGravedadYRadiaci
 	self assert: (naveContrabandistaConGravitones valorCombustible: 95 - 60)! !
 
 
-!EscapeDeFlotaTests methodsFor: 'naves' stamp: 'HAW 18/Sep/2026, 7:28:26 pm (UTC)'!
+!EscapeDeFlotaTests methodsFor: 'naves' stamp: 'HAW 20/Sep/2026, 1:34:00 am (UTC)'!
 nuevaNaveContrabandistaConGravitones
 
-	^ Contrabandista conPropulsor: #Gravitones! !
+	^ Nave initializeNaveContrabandistaConTipoDePropulsor: 
+	self propulsoresDeGravitones ! !
 
-!EscapeDeFlotaTests methodsFor: 'naves' stamp: 'HAW 18/Sep/2026, 7:37:06 pm (UTC)'!
+!EscapeDeFlotaTests methodsFor: 'naves' stamp: 'HAW 20/Sep/2026, 1:34:13 am (UTC)'!
 nuevaNaveContrabandistaConImpulsoEstandar
 
-	^ Contrabandista conPropulsor: #Estandar
-	"Nave deTipo: #Contrabandista conPropulsor: #Estandar"! !
+	^ Nave  initializeNaveContrabandistaConTipoDePropulsor: 
+	self propulsoresDeImpulsoEstandar.
+	! !
 
-!EscapeDeFlotaTests methodsFor: 'naves' stamp: 'HAW 18/Sep/2026, 7:15:23 pm (UTC)'!
+!EscapeDeFlotaTests methodsFor: 'naves' stamp: 'HAW 20/Sep/2026, 1:34:32 am (UTC)'!
 nuevaNaveContrabandistaConVelocidadLuz
 
-	^ Contrabandista conPropulsor: #VelocidadLuz.
-	"Nave deTipo: #Contrabandista conPropulsor: #VelocidadLuz"! !
+	^ Nave initializeNaveContrabandistaConTipoDePropulsor: 
+	self propulsoresDeVelocidadLuz ! !
 
-!EscapeDeFlotaTests methodsFor: 'naves' stamp: 'HAW 18/Sep/2026, 7:11:09 pm (UTC)'!
+!EscapeDeFlotaTests methodsFor: 'naves' stamp: 'HAW 20/Sep/2026, 1:34:25 am (UTC)'!
 nuevoCruceroPesadoConImpulsoEstandar
 
-	^ Crucero conPropulsor: #Estandar
-	"Nave deTipo: #Crucero conPropulsor: #Estandar"
+	^ Nave initializeNaveCruceroConTipoDePropulsor:
+		self propulsoresDeImpulsoEstandar 
 	! !
 
 
-!EscapeDeFlotaTests methodsFor: 'sectores' stamp: 'HAW 18/Sep/2026, 7:39:55 pm (UTC)'!
+!EscapeDeFlotaTests methodsFor: 'sectores' stamp: 'HAW 20/Sep/2026, 1:36:02 am (UTC)'!
 nuevoSectorDeAsteroidesConGravedad: gravedad yRadiacion: radiacion
 
-	^ SectorGalactico deTipo: #Asteroides conGravedad: gravedad yRadiacion: radiacion ! !
+	^ SectorAsteroides conGravedad: gravedad yRadiacion: radiacion ! !
 
-!EscapeDeFlotaTests methodsFor: 'sectores' stamp: 'NR 28/Sep/2025, 3:33:12 am (UTC)'!
+!EscapeDeFlotaTests methodsFor: 'sectores' stamp: 'HAW 20/Sep/2026, 1:36:07 am (UTC)'!
 nuevoSectorNebulosaConGravedad: gravedad yRadiacion: radiacion
  
-	self shouldBeImplemented ! !
+	^SectorNebulosa conGravedad: gravedad yRadiacion: radiacion ! !
 
-!EscapeDeFlotaTests methodsFor: 'sectores' stamp: 'gs 11/Sep/2026, 7:17:06 pm (UTC)'!
+!EscapeDeFlotaTests methodsFor: 'sectores' stamp: 'HAW 20/Sep/2026, 1:36:13 am (UTC)'!
 nuevoSectorPlanetarioConGravedad: gravedad yRadiacion: radiacion
 
-	^SectorGalactico deTipo: #Planetario conGravedad: gravedad yRadiacion: radiacion 
+	^SectorPlanetario conGravedad: gravedad yRadiacion: radiacion 
 ! !
 
-!EscapeDeFlotaTests methodsFor: 'sectores' stamp: 'gs 11/Sep/2026, 6:49:52 pm (UTC)'!
+!EscapeDeFlotaTests methodsFor: 'sectores' stamp: 'HAW 20/Sep/2026, 1:36:22 am (UTC)'!
 nuevoTrayectoDeSectoresPlanetariosDeLongitud: numeroDeSectores conGravedad: gravedad yRadiacion: radiacion
 
 	|sectores|
 	sectores := OrderedCollection new.
-	numeroDeSectores timesRepeat: [sectores add: (SectorGalactico deTipo: #Planetario 
-					conGravedad: gravedad yRadiacion: radiacion )].	
+	numeroDeSectores timesRepeat: [sectores add: (SectorPlanetario conGravedad: gravedad yRadiacion: radiacion )].	
 	^sectores.! !
 
 
-!EscapeDeFlotaTests methodsFor: 'propulsores' stamp: 'NR 28/Sep/2025, 3:33:03 am (UTC)'!
+!EscapeDeFlotaTests methodsFor: 'propulsores' stamp: 'HAW 20/Sep/2026, 1:36:39 am (UTC)'!
 propulsoresDeGravitones
 
-	self shouldBeImplemented ! !
+	^ PropulsorGravitones new! !
 
-!EscapeDeFlotaTests methodsFor: 'propulsores' stamp: 'NR 28/Sep/2025, 3:32:59 am (UTC)'!
+!EscapeDeFlotaTests methodsFor: 'propulsores' stamp: 'HAW 20/Sep/2026, 1:37:04 am (UTC)'!
 propulsoresDeImpulsoEstandar
 
-	self shouldBeImplemented ! !
+	^ PropulsorEstandar new! !
 
-!EscapeDeFlotaTests methodsFor: 'propulsores' stamp: 'NR 28/Sep/2025, 3:32:53 am (UTC)'!
+!EscapeDeFlotaTests methodsFor: 'propulsores' stamp: 'HAW 20/Sep/2026, 1:37:15 am (UTC)'!
 propulsoresDeVelocidadLuz
 
-	self shouldBeImplemented ! !
+	^ PropulsorVelocidadDeLuz new! !
