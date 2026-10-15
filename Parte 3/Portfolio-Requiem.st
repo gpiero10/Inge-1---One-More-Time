@@ -93,7 +93,7 @@ for: aValue
 
 !classDefinition: #CuentaBancaria category: #'Portfolio-Ejercicio'!
 Object subclass: #CuentaBancaria
-	instanceVariableNames: 'activos'
+	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Portfolio-Ejercicio'!
@@ -122,13 +122,23 @@ add: anAsset
 	self subclassResponsibility ! !
 
 
-!CuentaBancaria methodsFor: 'init' stamp: 'HAW 13/Oct/2026, 3:21:03 pm (UTC)'!
+!CuentaBancaria methodsFor: 'init' stamp: 'HAW 15/Oct/2026, 8:35:02 pm (UTC)'!
 initialize
 
-	activos := OrderedCollection new.! !
+	self subclassResponsibility! !
 
 
-!CuentaBancaria methodsFor: 'tieneCuentaAgregada' stamp: 'HAW 13/Oct/2026, 4:04:50 pm (UTC)'!
+!CuentaBancaria methodsFor: 'tieneCuentaAgregada' stamp: 'HAW 15/Oct/2026, 10:58:19 pm (UTC)'!
+tenesEstaCuentaReceptivaRegistrada: aReceptiveAccount
+
+	self subclassResponsibility! !
+
+!CuentaBancaria methodsFor: 'tieneCuentaAgregada' stamp: 'HAW 15/Oct/2026, 10:58:19 pm (UTC)'!
+tenesEstePortfolioRegistrado: aPortfolio
+
+	self subclassResponsibility! !
+
+!CuentaBancaria methodsFor: 'tieneCuentaAgregada' stamp: 'HAW 15/Oct/2026, 10:58:19 pm (UTC)'!
 tieneEstaCuentaRegistrada: unaCuentaBancaria
 
 	self subclassResponsibility! !
@@ -136,7 +146,7 @@ tieneEstaCuentaRegistrada: unaCuentaBancaria
 
 !classDefinition: #Portfolio category: #'Portfolio-Ejercicio'!
 CuentaBancaria subclass: #Portfolio
-	instanceVariableNames: ''
+	instanceVariableNames: 'padres activos'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Portfolio-Ejercicio'!
@@ -147,19 +157,13 @@ balance
 	^ activos inject: 0 into: [:acumulado :aPortfolio | acumulado + aPortfolio balance ]! !
 
 
-!Portfolio methodsFor: 'añadir' stamp: 'HAW 13/Oct/2026, 4:50:48 pm (UTC)'!
+!Portfolio methodsFor: 'añadir' stamp: 'HAW 15/Oct/2026, 7:58:03 pm (UTC)'!
 add: unaCuentaBancariaAAgregar
 	
-	(self = unaCuentaBancariaAAgregar) ifTrue: [self error: self class errorDeAgregarseAsiMismo].
-	(activos includes: unaCuentaBancariaAAgregar) ifTrue: [self error: self class errorDeAgregarUnaCuentaYaAgregada].
-	(activos anySatisfy: [:unaCuenta | unaCuenta tieneEstaCuentaRegistrada: unaCuentaBancariaAAgregar]) 
-		ifTrue: [self error: self class errorDeAgregarUnaCuentaYaAgregada ].
-	(activos anySatisfy: [:unaCuenta | unaCuentaBancariaAAgregar tieneEstaCuentaRegistrada: unaCuenta]) 
-		ifTrue: [self error: self class errorDeAgregarUnaCuentaYaAgregada ].
+	self verificarQueNoHayanNodosRepetidos: unaCuentaBancariaAAgregar.
 	
-	
-	
-	activos add: unaCuentaBancariaAAgregar ! !
+	activos add: unaCuentaBancariaAAgregar.
+	unaCuentaBancariaAAgregar soyTuPadre: self.! !
 
 
 !Portfolio methodsFor: 'hasRegistered' stamp: 'HAW 13/Oct/2026, 3:23:08 pm (UTC)'!
@@ -179,23 +183,43 @@ transactions
 	! !
 
 
-!Portfolio methodsFor: 'tieneCuentaAgregada' stamp: 'HAW 13/Oct/2026, 5:24:16 pm (UTC)'!
+!Portfolio methodsFor: 'tieneCuentaAgregada' stamp: 'HAW 15/Oct/2026, 8:02:10 pm (UTC)'!
 tenesEstaCuentaReceptivaRegistrada: aReceptiveAccount 
 	
-	^ activos includes: aReceptiveAccount ! !
 
-!Portfolio methodsFor: 'tieneCuentaAgregada' stamp: 'HAW 13/Oct/2026, 6:07:05 pm (UTC)'!
+	^ activos anySatisfy: [:unaCuenta | unaCuenta tenesEstaCuentaReceptivaRegistrada: aReceptiveAccount]
+	! !
+
+!Portfolio methodsFor: 'tieneCuentaAgregada' stamp: 'HAW 15/Oct/2026, 5:18:16 pm (UTC)'!
 tenesEstePortfolioRegistrado: aPortfolio 
 	
-	"^ (activos includes: aPortfolio) or: [self = aPortfolio ]. "
-	^ (activos anySatisfy: [:unaCuenta | unaCuenta tenesEstePortfolioRegistrado: aPortfolio]) or: [self = aPortfolio ].! !
+	^ (activos anySatisfy: [:unaCuenta | aPortfolio tieneEstaCuentaRegistrada: unaCuenta ]) or: [self = aPortfolio ].! !
 
-!Portfolio methodsFor: 'tieneCuentaAgregada' stamp: 'HAW 13/Oct/2026, 5:56:45 pm (UTC)'!
+!Portfolio methodsFor: 'tieneCuentaAgregada' stamp: 'HAW 15/Oct/2026, 8:05:44 pm (UTC)'!
 tieneEstaCuentaRegistrada: unaCuentaBancaria 
 	
-	(unaCuentaBancaria isKindOf: Portfolio) 
-	ifTrue: [ ^ unaCuentaBancaria tenesEstePortfolioRegistrado: self]
-	 ifFalse: [^ activos anySatisfy: [:unActivo | unActivo tieneEstaCuentaRegistrada: unaCuentaBancaria ] ]! !
+	^ (unaCuentaBancaria tenesEstePortfolioRegistrado: self) or: [activos anySatisfy: [:unActivo | unaCuentaBancaria tieneEstaCuentaRegistrada: unActivo]]! !
+
+!Portfolio methodsFor: 'tieneCuentaAgregada' stamp: 'HAW 15/Oct/2026, 11:23:43 pm (UTC)'!
+verificarQueNoHayanNodosRepetidos: unaCuentaBancariaAAgregar
+
+	(self = unaCuentaBancariaAAgregar) ifTrue: [self error: self class errorDeAgregarseAsiMismo].
+	
+	(activos anySatisfy: [:unaCuenta | unaCuenta tieneEstaCuentaRegistrada: unaCuentaBancariaAAgregar]) 
+		ifTrue: [self error: self class errorDeAgregarUnaCuentaYaAgregada ].
+	
+	padres do: [:aDad | aDad verificarQueNoHayanNodosRepetidos: unaCuentaBancariaAAgregar].! !
+
+
+!Portfolio methodsFor: 'init' stamp: 'HAW 15/Oct/2026, 11:23:43 pm (UTC)'!
+initialize
+
+	activos := OrderedCollection new.
+	padres :=  OrderedCollection new.! !
+
+!Portfolio methodsFor: 'init' stamp: 'HAW 15/Oct/2026, 11:23:43 pm (UTC)'!
+soyTuPadre: aPortfolio 
+	padres add:​ aPortfolio ! !
 
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
@@ -259,11 +283,22 @@ tenesEstaCuentaReceptivaRegistrada: aReceptiveAccount
 
 	^ self = aReceptiveAccount ! !
 
+!ReceptiveAccount methodsFor: 'tieneCuentaAgregada' stamp: 'HAW 15/Oct/2026, 8:34:03 pm (UTC)'!
+tenesEstePortfolioRegistrado: aPortfolio 
+
+	
+	^ false! !
+
 !ReceptiveAccount methodsFor: 'tieneCuentaAgregada' stamp: 'HAW 13/Oct/2026, 5:24:05 pm (UTC)'!
 tieneEstaCuentaRegistrada: unaCuentaBancaria
 
 	
 	^ unaCuentaBancaria tenesEstaCuentaReceptivaRegistrada: self.! !
+
+
+!ReceptiveAccount methodsFor: 'init' stamp: 'HAW 15/Oct/2026, 11:23:25 pm (UTC)'!
+soyTuPadre: aPortfolio 
+	"y que ?"! !
 
 
 !classDefinition: #PortfolioTests category: #'Portfolio-Ejercicio'!
@@ -273,13 +308,13 @@ TestCase subclass: #PortfolioTests
 	poolDictionaries: ''
 	category: 'Portfolio-Ejercicio'!
 
-!PortfolioTests methodsFor: 'tests' stamp: 'HAW 10/Oct/2026, 4:57:45 pm (UTC)'!
+!PortfolioTests methodsFor: 'tests' stamp: 'HAW 15/Oct/2026, 8:28:11 pm (UTC)'!
 test01PortfolioVacioTieneBalanceCero
-	|account portofolio|
-	portofolio := Portfolio new.
+	|portfolio|
+	portfolio := Portfolio new.
 	
 	
-	self assert: portofolio balance equals: 0.! !
+	self assert: portfolio balance equals: 0.! !
 
 !PortfolioTests methodsFor: 'tests' stamp: 'HAW 13/Oct/2026, 3:24:08 pm (UTC)'!
 test02PortfolioTieneBalanceIgualDeSuUnicaCuenta
@@ -503,8 +538,8 @@ test15PortfolioNoPuedeAgregarOtroPortfolioQuePoseeUnaCuentaQueYaAgrego
 	
 	! !
 
-!PortfolioTests methodsFor: 'tests' stamp: 'HAW 13/Oct/2026, 5:40:54 pm (UTC)'!
-test16PortfolioNoPuedeAgregarOtroPortfolioQuePoseeUnPortfolioConUnaCuentaQueYaAgrego
+!PortfolioTests methodsFor: 'tests' stamp: 'HAW 15/Oct/2026, 7:45:10 pm (UTC)'!
+test16PortfolioNoPuedeAgregarNodoQueYaEstaAgregadoEnElArbol
 	"p
 	p1      ac
 	 p2
@@ -525,8 +560,29 @@ test16PortfolioNoPuedeAgregarOtroPortfolioQuePoseeUnPortfolioConUnaCuentaQueYaAg
 		raise:  Error
 		withExceptionDo: [:error | self assert: (Portfolio errorDeAgregarUnaCuentaYaAgregada ) equals: error messageText ].! !
 
-!PortfolioTests methodsFor: 'tests' stamp: 'HAW 13/Oct/2026, 5:40:10 pm (UTC)'!
-test17PortfolioNoPuedeAgregarPortfolioQuePoseeunaCuentaQuePoseeUNoDeSusPortfolios
+!PortfolioTests methodsFor: 'tests' stamp: 'HAW 15/Oct/2026, 7:44:26 pm (UTC)'!
+test17PortfolioNoPuedeAgregarSubArbolQuePoseeUnNodoYaAgregado
+	"p
+	ac	p1      
+		 p2
+		ac"
+	|portfolio anAccount anotherPortfolio otherPortfolio|
+	portfolio := Portfolio new.
+	anotherPortfolio := Portfolio new.
+	otherPortfolio := Portfolio new.
+	
+	anAccount := ReceptiveAccount new.
+	otherPortfolio add: anAccount.
+	anotherPortfolio add: otherPortfolio.
+	
+	portfolio add: anAccount.
+	
+	self should: [portfolio add: anotherPortfolio.]
+		raise:  Error
+		withExceptionDo: [:error | self assert: (Portfolio errorDeAgregarUnaCuentaYaAgregada ) equals: error messageText ].! !
+
+!PortfolioTests methodsFor: 'tests' stamp: 'HAW 15/Oct/2026, 7:43:12 pm (UTC)'!
+test18PortfolioNoPuedeAgregarPortfolioQuePoseeunaCuentaQuePoseeUNoDeSusPortfolios
 	"p
 	p1 p2
 	 ac"
@@ -546,24 +602,73 @@ test17PortfolioNoPuedeAgregarPortfolioQuePoseeunaCuentaQuePoseeUNoDeSusPortfolio
 		raise:  Error
 		withExceptionDo: [:error | self assert: (Portfolio errorDeAgregarUnaCuentaYaAgregada ) equals: error messageText ].! !
 
-!PortfolioTests methodsFor: 'tests' stamp: 'HAW 13/Oct/2026, 5:45:06 pm (UTC)'!
-test18
+!PortfolioTests methodsFor: 'tests' stamp: 'HAW 15/Oct/2026, 11:22:45 pm (UTC)'!
+test19PortfolioNoPuedeAgregarPortfolioQuePoseeunPortfolioQueUnoDeSusPortfoliosYaPoseia
 	"p
 	p1 p2
 	  p3"
-	|portfolio portfolioBenArfiano anotherPortfolio otherPortfolio|
+	|portfolio portfolioProblematico anotherPortfolio otherPortfolio|
 	portfolio := Portfolio new.
 	anotherPortfolio := Portfolio new.
 	otherPortfolio := Portfolio new.
 	
-	portfolioBenArfiano := Portfolio new.
+	portfolioProblematico := Portfolio new.
 	
-	otherPortfolio add: portfolioBenArfiano.
-	anotherPortfolio add: portfolioBenArfiano.
+	otherPortfolio add: portfolioProblematico.
+	anotherPortfolio add: portfolioProblematico.
 	
 	portfolio add: anotherPortfolio .
 	
 	self should: [portfolio add: otherPortfolio ]
+		raise:  Error
+		withExceptionDo: [:error | self assert: (Portfolio errorDeAgregarUnaCuentaYaAgregada ) equals: error messageText ].! !
+
+!PortfolioTests methodsFor: 'tests' stamp: 'HAW 15/Oct/2026, 8:10:44 pm (UTC)'!
+test20NoSeAgregaNodoCuentaQueYaEstaMasArribaEnElArbol
+	|portfolio anotherPortfolio account |
+	portfolio := Portfolio new.
+	anotherPortfolio := Portfolio new.
+	account := ReceptiveAccount new.
+	
+	portfolio add: anotherPortfolio.
+	portfolio add: account.
+	
+	self should: [anotherPortfolio add: account]
+		raise:  Error
+		withExceptionDo: [:error | self assert: (Portfolio errorDeAgregarUnaCuentaYaAgregada ) equals: error messageText ].! !
+
+!PortfolioTests methodsFor: 'tests' stamp: 'HAW 15/Oct/2026, 9:09:59 pm (UTC)'!
+test21NoSeAgregaNodoRepetidoEnMasDeUnNivelDeDistanciaRespectoALaRaiz
+	| ac p1 p2 p3 p4 p0 |
+	p0 := Portfolio new.
+	p1 := Portfolio new.
+	p2 := Portfolio new.
+	p3 := Portfolio new.
+	p4 := Portfolio new.
+	
+	ac := ReceptiveAccount new.
+	
+	p0 add: p1; add: p2.
+	p1 add: p3.
+	p2 add: p4.
+	p4 add: ac.
+	
+	self should: [p3 add: ac]
+		raise:  Error
+		withExceptionDo: [:error | self assert: (Portfolio errorDeAgregarUnaCuentaYaAgregada ) equals: error messageText ].! !
+
+!PortfolioTests methodsFor: 'tests' stamp: 'HAW 15/Oct/2026, 9:52:22 pm (UTC)'!
+test22PortfolioConMasDeUNPadreNoPuedeAgregarNodoRepetido
+	| p1 p2 p3 p4 |
+	p1 := Portfolio new.
+	p2 := Portfolio new.
+	p3 := Portfolio new.
+	p4 := Portfolio new.
+	
+	p2 add: p3; add: p4.
+	p1 add: p3.
+	
+	self should: [p3 add: p4]
 		raise:  Error
 		withExceptionDo: [:error | self assert: (Portfolio errorDeAgregarUnaCuentaYaAgregada ) equals: error messageText ].! !
 
