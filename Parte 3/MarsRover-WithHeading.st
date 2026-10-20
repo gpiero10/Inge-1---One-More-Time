@@ -1,51 +1,6 @@
-!classDefinition: #LoggerDelMarsRover category: #'MarsRover-WithHeading'!
-Object subclass: #LoggerDelMarsRover
-	instanceVariableNames: 'marsRover tipo logs'
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'MarsRover-WithHeading'!
-
-!LoggerDelMarsRover methodsFor: 'init' stamp: 'HAW 16/Oct/2026, 11:06:49 pm (UTC)'!
-iniciarReconocimiento
-	
-	marsRover teSigo: self ySoyDeTipo: tipo.! !
-
-!LoggerDelMarsRover methodsFor: 'init' stamp: 'HAW 16/Oct/2026, 11:10:02 pm (UTC)'!
-initializeInitializeForAMarsRover: unMarsRover conUnTipoDeSeguimiento: unTipoDeSeguimiento  
-	
-	marsRover := unMarsRover.
-	tipo :=  unTipoDeSeguimiento.
-	
-	logs := WriteStream on: ''.
-		
-	self iniciarReconocimiento. ! !
-
-
-!LoggerDelMarsRover methodsFor: 'loggear' stamp: 'HAW 16/Oct/2026, 11:17:29 pm (UTC)'!
-registrarCambio: unCambio 
-	
-	logs nextPutAll: unCambio asString; newLine. ! !
-
-
-!LoggerDelMarsRover methodsFor: 'getter' stamp: 'HAW 16/Oct/2026, 11:11:38 pm (UTC)'!
-dameTusLogs
-	^ ReadStream on: logs contents ! !
-
-"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
-
-!classDefinition: 'LoggerDelMarsRover class' category: #'MarsRover-WithHeading'!
-LoggerDelMarsRover class
-	instanceVariableNames: ''!
-
-!LoggerDelMarsRover class methodsFor: 'instance creation' stamp: 'HAW 16/Oct/2026, 11:05:43 pm (UTC)'!
-initializeForAMarsRover: unMarsRover conUnTipoDeSeguimiento: unTipoDeSeguimiento  
-	
-	^self new initializeInitializeForAMarsRover: unMarsRover conUnTipoDeSeguimiento: unTipoDeSeguimiento ! !
-
-
 !classDefinition: #MarsRover category: #'MarsRover-WithHeading'!
 Object subclass: #MarsRover
-	instanceVariableNames: 'position head logDePosicion logDeOrientacion observadores'
+	instanceVariableNames: 'position head loggersDePosicion loggersDeOrientacion'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MarsRover-WithHeading'!
@@ -61,42 +16,47 @@ signalInvalidCommand
 	self error: self invalidCommandErrorDescription ! !
 
 
-!MarsRover methodsFor: 'initialization' stamp: 'HAW 16/Oct/2026, 11:36:39 pm (UTC)'!
+!MarsRover methodsFor: 'initialization' stamp: 'HAW 19/Oct/2026, 8:09:16 pm (UTC)'!
 initializeAt: aPosition heading: aHeadingType
 
 	position := aPosition.
-	head := aHeadingType for: self.
+	head := aHeadingType followPositionChangesOn: self.
 	
-	observadores := OrderedCollection new.! !
+	loggersDePosicion := OrderedCollection new.
+	
+	loggersDeOrientacion := OrderedCollection new.! !
 
 
-!MarsRover methodsFor: 'heading' stamp: 'HAW 16/Oct/2026, 6:32:57 pm (UTC)'!
+!MarsRover methodsFor: 'heading' stamp: 'HAW 19/Oct/2026, 8:09:16 pm (UTC)'!
 headEast
 	
-	head := MarsRoverHeadingEast for: self.
 	
-	self logearOrientacionAUnaDireccion: 'East'.! !
+	head := MarsRoverHeadingEast followPositionChangesOn: self.
+	
+	self printearNuevaOrientacion: 'East'.! !
 
-!MarsRover methodsFor: 'heading' stamp: 'HAW 16/Oct/2026, 6:32:45 pm (UTC)'!
+!MarsRover methodsFor: 'heading' stamp: 'HAW 19/Oct/2026, 8:09:16 pm (UTC)'!
 headNorth
 	
-	head := MarsRoverHeadingNorth for: self.
+	head := MarsRoverHeadingNorth followPositionChangesOn: self.
 	
-	self logearOrientacionAUnaDireccion: 'North'.! !
+	self printearNuevaOrientacion: 'North'.! !
 
-!MarsRover methodsFor: 'heading' stamp: 'HAW 16/Oct/2026, 6:32:17 pm (UTC)'!
+!MarsRover methodsFor: 'heading' stamp: 'HAW 19/Oct/2026, 8:09:16 pm (UTC)'!
 headSouth
 	
-	head := MarsRoverHeadingSouth for: self.
+	head := MarsRoverHeadingSouth followPositionChangesOn: self.
 	
-	self logearOrientacionAUnaDireccion: 'South'.! !
+	self printearNuevaOrientacion: 'South'.! !
 
-!MarsRover methodsFor: 'heading' stamp: 'HAW 16/Oct/2026, 6:32:29 pm (UTC)'!
+!MarsRover methodsFor: 'heading' stamp: 'HAW 19/Oct/2026, 8:09:16 pm (UTC)'!
 headWest
 	
-	head := MarsRoverHeadingWest for: self.
+	head := MarsRoverHeadingWest followPositionChangesOn: self.
 	
-	self logearOrientacionAUnaDireccion: 'West'.! !
+	self printearNuevaOrientacion: 'West'.
+	
+	! !
 
 !MarsRover methodsFor: 'heading' stamp: 'HAW 7/Oct/2021, 11:14:20 pm (UTC)'!
 rotateLeft
@@ -140,38 +100,38 @@ moveBackward
 	
 	head moveBackward! !
 
-!MarsRover methodsFor: 'moving' stamp: 'HAW 16/Oct/2026, 6:33:23 pm (UTC)'!
+!MarsRover methodsFor: 'moving' stamp: 'HAW 18/Oct/2026, 12:02:00 am (UTC)'!
 moveEast
 	
 	position := position + (1@0).
 	
-	self logearPosicion.! !
+	self notificarLogDePosicion.! !
 
 !MarsRover methodsFor: 'moving' stamp: 'HAW 7/Oct/2021, 11:13:53 pm (UTC)'!
 moveForward
 	
 	head moveForward! !
 
-!MarsRover methodsFor: 'moving' stamp: 'HAW 16/Oct/2026, 6:33:17 pm (UTC)'!
+!MarsRover methodsFor: 'moving' stamp: 'HAW 17/Oct/2026, 11:59:13 pm (UTC)'!
 moveNorth
 	
 	position := position + (0@1).
 	
-	self logearPosicion.! !
+	self notificarLogDePosicion. ! !
 
-!MarsRover methodsFor: 'moving' stamp: 'HAW 16/Oct/2026, 6:33:29 pm (UTC)'!
+!MarsRover methodsFor: 'moving' stamp: 'HAW 17/Oct/2026, 11:59:54 pm (UTC)'!
 moveSouth
 	
 	position := position + (0@-1).
 	
-	self logearPosicion.! !
+	self notificarLogDePosicion.! !
 
-!MarsRover methodsFor: 'moving' stamp: 'HAW 16/Oct/2026, 6:33:31 pm (UTC)'!
+!MarsRover methodsFor: 'moving' stamp: 'HAW 18/Oct/2026, 12:03:06 am (UTC)'!
 moveWest
 	
 	position := position + (-1@0).
 	
-	self logearPosicion.! !
+	self notificarLogDePosicion.! !
 
 
 !MarsRover methodsFor: 'command processing' stamp: 'HAW 30/Jun/2018, 10:48:26 pm (UTC)'!
@@ -191,36 +151,26 @@ processCommand: aCommand
 	self signalInvalidCommand.! !
 
 
-!MarsRover methodsFor: 'logs' stamp: 'HAW 16/Oct/2026, 11:19:28 pm (UTC)'!
-empezaARegistrarMovimientosCon: unLogger 
+!MarsRover methodsFor: 'logs' stamp: 'HAW 20/Oct/2026, 7:51:25 pm (UTC)'!
+notificarLogDePosicion
 
-	logDePosicion := unLogger ! !
+	loggersDePosicion do: [ :aLog | aLog cambioDePosicion: position]! !
 
-!MarsRover methodsFor: 'logs' stamp: 'HAW 16/Oct/2026, 2:06:52 am (UTC)'!
-empezaARegistrarOrientacionCon: unLogger 
+!MarsRover methodsFor: 'logs' stamp: 'HAW 20/Oct/2026, 7:50:12 pm (UTC)'!
+printearNuevaOrientacion: unaNuevaOrientacion
+
+	loggersDeOrientacion do: [:aLog | aLog cambioDeOrientacion: unaNuevaOrientacion].! !
+
+!MarsRover methodsFor: 'logs' stamp: 'HAW 19/Oct/2026, 4:16:06 pm (UTC)'!
+sigueTuOrientacionEsteLogger: unLog 
 	
-	logDeOrientacion := unLogger. ! !
+	loggersDeOrientacion add:​ unLog. ! !
 
-!MarsRover methodsFor: 'logs' stamp: 'HAW 16/Oct/2026, 11:50:08 pm (UTC)'!
-logearOrientacionAUnaDireccion: unaDireccion
-
-	"logDeOrientacion ifNotNil: [logDeOrientacion registrarCambio: unaDireccion]."
-	observadores do: [:unLogger | unLogger registrarCambio: unaDireccion.]
-	! !
-
-!MarsRover methodsFor: 'logs' stamp: 'HAW 16/Oct/2026, 11:41:57 pm (UTC)'!
-logearPosicion
-
-	observadores do: [:unLogger | unLogger registrarCambio: position ].! !
-
-!MarsRover methodsFor: 'logs' stamp: 'HAW 16/Oct/2026, 11:48:51 pm (UTC)'!
-teSigo: aLoggerDelMarsRover ySoyDeTipo: unTipo  
-
-	"unTipo =  #Posicion ifTrue: [].
-	unTipo =  #Orientacion ifTrue: [logDeOrientacion := aLoggerDelMarsRover].
-	"
-	observadores add:​ aLoggerDelMarsRover.
-	! !
+!MarsRover methodsFor: 'logs' stamp: 'HAW 19/Oct/2026, 4:33:45 pm (UTC)'!
+sigueTuPosicionEsteLogger: unLog 
+	
+	
+	loggersDePosicion add: unLog. ! !
 
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
@@ -280,8 +230,8 @@ initializeFor: aMarsRover
 MarsRoverHeading class
 	instanceVariableNames: ''!
 
-!MarsRoverHeading class methodsFor: 'instance creation' stamp: 'HAW 7/Oct/2021, 11:11:35 pm (UTC)'!
-for: aMarsRover 
+!MarsRoverHeading class methodsFor: 'instance creation' stamp: 'HAW 19/Oct/2026, 8:09:16 pm (UTC)'!
+followPositionChangesOn: aMarsRover 
 	
 	^self new initializeFor: aMarsRover ! !
 
@@ -402,209 +352,347 @@ rotateRight
 	^marsRover headNorth! !
 
 
-!classDefinition: #LoggerDelMarsRoverTests category: #'MarsRover-WithHeading'!
-TestCase subclass: #LoggerDelMarsRoverTests
+!classDefinition: #MarsRoverStalker category: #'MarsRover-WithHeading'!
+Object subclass: #MarsRoverStalker
+	instanceVariableNames: 'roverSeguido stream rover'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MarsRover-WithHeading'!
+
+!MarsRoverStalker methodsFor: 'initialization' stamp: 'HAW 20/Oct/2026, 7:20:39 pm (UTC)'!
+initializeFor: unRover 
+	
+	rover := unRover.
+	stream := WriteStream on: ''.
+! !
+
+
+!MarsRoverStalker methodsFor: 'log' stamp: 'HAW 20/Oct/2026, 7:50:12 pm (UTC)'!
+cambioDeOrientacion: unCambio 
+	 
+	stream nextPutAll: unCambio asString; newLine.! !
+
+!MarsRoverStalker methodsFor: 'log' stamp: 'HAW 20/Oct/2026, 7:50:49 pm (UTC)'!
+cambioDePosicion: unCambio 
+	 
+	stream nextPutAll: unCambio asString; newLine.! !
+
+
+!MarsRoverStalker methodsFor: 'getter' stamp: 'HAW 20/Oct/2026, 7:20:56 pm (UTC)'!
+readStream
+	
+	^ ReadStream on: stream contents! !
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+!classDefinition: 'MarsRoverStalker class' category: #'MarsRover-WithHeading'!
+MarsRoverStalker class
+	instanceVariableNames: ''!
+
+!MarsRoverStalker class methodsFor: 'instance creation' stamp: 'HAW 20/Oct/2026, 7:25:12 pm (UTC)'!
+followHeadingChangesOn: aMarsRover 
+	|logger|
+	logger := self new initializeFor: aMarsRover .
+	aMarsRover sigueTuOrientacionEsteLogger: logger.
+	^logger ! !
+
+!MarsRoverStalker class methodsFor: 'instance creation' stamp: 'HAW 20/Oct/2026, 7:25:12 pm (UTC)'!
+followPositionAndHeadingChangesOn: aMarsRover 
+	
+	| logger |
+	logger := self new initializeFor: aMarsRover.
+	aMarsRover sigueTuOrientacionEsteLogger: logger.
+	aMarsRover sigueTuPosicionEsteLogger: logger.
+	
+	^logger ! !
+
+!MarsRoverStalker class methodsFor: 'instance creation' stamp: 'HAW 20/Oct/2026, 7:25:12 pm (UTC)'!
+followPositionChangesOn: unRover 
+	
+	|logger|
+	logger := self new initializeFor: unRover .
+	unRover sigueTuPosicionEsteLogger: logger.
+	^logger 
+! !
+
+
+!classDefinition: #MarsRoverLogger category: #'MarsRover-WithHeading'!
+MarsRoverStalker subclass: #MarsRoverLogger
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'MarsRover-WithHeading'!
 
-!LoggerDelMarsRoverTests methodsFor: 'cardinal' stamp: 'HAW 16/Oct/2026, 12:52:54 am (UTC)'!
-east
+
+!classDefinition: #MarsRoverStatusWindow category: #'MarsRover-WithHeading'!
+MarsRoverStalker subclass: #MarsRoverStatusWindow
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MarsRover-WithHeading'!
 
+!MarsRoverStatusWindow methodsFor: 'log' stamp: 'HAW 20/Oct/2026, 7:50:12 pm (UTC)'!
+cambioDeOrientacion: position1 
+	
+	| campoOrientacion |
+	campoOrientacion := ', Apuntando a '.
+	
+	stream nextPutAll: 'Posicion: '.
+	stream nextPutAll: position1 asString.
+	
+	position1 = 'West' ifTrue: [campoOrientacion := campoOrientacion , 'Oeste'].
+	
+	stream nextPutAll: campoOrientacion; newLine.! !
+
+
+
+!classDefinition: #MarsRoverLoggerTests category: #'MarsRover-WithHeading'!
+TestCase subclass: #MarsRoverLoggerTests
+	instanceVariableNames: 'marsRover readLog anotherReadLog'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'MarsRover-WithHeading'!
+
+!MarsRoverLoggerTests methodsFor: 'tests' stamp: 'HAW 17/Oct/2026, 11:37:26 pm (UTC)'!
+initializeMarsRoverEn: unaPosicion yUnaOrientacion: aOrientation
+	
+	marsRover := MarsRover at: unaPosicion heading: aOrientation. ! !
+
+!MarsRoverLoggerTests methodsFor: 'tests' stamp: 'HAW 19/Oct/2026, 5:29:59 pm (UTC)'!
+test01RoverLogeaAvanceAlNorte
+	
+	| unLog|
+	self initializeMarsRoverEn: (0@0) yUnaOrientacion: self north.
+	unLog := self getLogDePosicion: marsRover.
+	
+	marsRover process: 'f'.
+	
+	readLog := self obtenerReadStreamOf: unLog.
+	
+	self assert: readLog nextLine equals: '0@1'.
+	! !
+
+!MarsRoverLoggerTests methodsFor: 'tests' stamp: 'HAW 19/Oct/2026, 5:30:05 pm (UTC)'!
+test02RoverLogeaAvanceAlSur
+	
+	| unLog|
+	self initializeMarsRoverEn: (0@0) yUnaOrientacion: self south.
+	unLog := self getLogDePosicion: marsRover.
+	
+	marsRover process: 'f'.
+	
+	readLog := self obtenerReadStreamOf: unLog.
+	
+	self assert: readLog nextLine equals: (0@-1) asString.
+	! !
+
+!MarsRoverLoggerTests methodsFor: 'tests' stamp: 'HAW 19/Oct/2026, 5:30:11 pm (UTC)'!
+test03RoverLogeaAvanceAlEste
+	
+	| unLog|
+	self initializeMarsRoverEn: (0@0) yUnaOrientacion: self east.
+	unLog := self getLogDePosicion: marsRover.
+	
+	marsRover process: 'f'.
+	
+	readLog := self obtenerReadStreamOf: unLog.
+	
+	self assert: readLog nextLine equals: (1@0) asString.
+	! !
+
+!MarsRoverLoggerTests methodsFor: 'tests' stamp: 'HAW 19/Oct/2026, 5:30:18 pm (UTC)'!
+test04RoverLogeaAvanceAlOeste
+	
+	| unLog|
+	self initializeMarsRoverEn: (0@0) yUnaOrientacion: self west.
+	unLog := self getLogDePosicion: marsRover.
+	
+	marsRover process: 'f'.
+	
+	readLog := self obtenerReadStreamOf: unLog.
+	
+	self assert: readLog nextLine equals: (-1@0) asString.
+	! !
+
+!MarsRoverLoggerTests methodsFor: 'tests' stamp: 'HAW 19/Oct/2026, 5:36:07 pm (UTC)'!
+test05RoverLogeaRotacionAlEste
+	
+	| unLog|
+	self initializeMarsRoverEn: (0@0) yUnaOrientacion: self north.
+	unLog := self getLogDeRotacion: marsRover.
+	
+	marsRover process: 'r'.
+	
+	readLog := self obtenerReadStreamOf: unLog.
+	
+	self assert: readLog nextLine equals: 'East'.
+	! !
+
+!MarsRoverLoggerTests methodsFor: 'tests' stamp: 'HAW 19/Oct/2026, 5:37:27 pm (UTC)'!
+test06RoverLogeaRotacionAlOeste
+	
+	| unLog|
+	self initializeMarsRoverEn: (0@0) yUnaOrientacion: self north.
+	unLog := self getLogDeRotacion: marsRover.
+	
+	marsRover process: 'l'.
+	
+	readLog := self obtenerReadStreamOf: unLog.
+	
+	self assert: readLog nextLine equals: 'West'.
+	! !
+
+!MarsRoverLoggerTests methodsFor: 'tests' stamp: 'HAW 19/Oct/2026, 5:37:34 pm (UTC)'!
+test07RoverLogeaRotacionAlSur
+	
+	| unLog|
+	self initializeMarsRoverEn: (0@0) yUnaOrientacion: self west.
+	unLog := self getLogDeRotacion: marsRover.
+	
+	marsRover process: 'l'.
+	
+	readLog := self obtenerReadStreamOf: unLog.
+	
+	self assert: readLog nextLine equals: 'South'.
+	! !
+
+!MarsRoverLoggerTests methodsFor: 'tests' stamp: 'HAW 19/Oct/2026, 5:37:38 pm (UTC)'!
+test08RoverLogeaRotacionAlNorte
+	
+	| unLog|
+	self initializeMarsRoverEn: (0@0) yUnaOrientacion: self west.
+	
+	unLog := self getLogDeRotacion: marsRover.
+	
+	
+	marsRover process: 'r'.
+	
+	readLog := self obtenerReadStreamOf: unLog.
+	
+	self assert: readLog nextLine equals: 'North'.
+	! !
+
+!MarsRoverLoggerTests methodsFor: 'tests' stamp: 'HAW 19/Oct/2026, 5:30:44 pm (UTC)'!
+test09RoverPuedeTenerMasDeUnLogDePosicion
+	| unLog otroLog posicionEsperada |
+	self initializeMarsRoverEn: (0@0) yUnaOrientacion: self north.
+	unLog := self getLogDePosicion: marsRover.
+	otroLog := self getLogDePosicion: marsRover.
+	
+	marsRover process: 'f'.
+	
+	readLog := self obtenerReadStreamOf: unLog.
+	anotherReadLog := self obtenerReadStreamOf: otroLog.
+	
+	posicionEsperada := (0@1) asString.
+	self assert: readLog nextLine equals: posicionEsperada.
+	self assert: anotherReadLog nextLine equals: posicionEsperada.! !
+
+!MarsRoverLoggerTests methodsFor: 'tests' stamp: 'HAW 19/Oct/2026, 5:37:51 pm (UTC)'!
+test10RoverPuedeTenerMasDeUnLogDeOrientacion
+	| unLog otroLog |
+	self initializeMarsRoverEn: (0@0) yUnaOrientacion: self west.
+	unLog := self getLogDeRotacion: marsRover.
+	otroLog := self getLogDeRotacion: marsRover.
+	
+	marsRover process: 'r'.
+	
+	readLog := self obtenerReadStreamOf: unLog.
+	anotherReadLog := self obtenerReadStreamOf: otroLog.
+	
+	self assert: readLog nextLine equals: 'North'.
+	self assert: anotherReadLog nextLine equals: 'North'.! !
+
+!MarsRoverLoggerTests methodsFor: 'tests' stamp: 'HAW 19/Oct/2026, 5:38:05 pm (UTC)'!
+test11RoverPuedeTenerUnMismoLoggerDeOrientacionYPosicion
+	| unLog |
+	self initializeMarsRoverEn: (0@0) yUnaOrientacion: self north.
+	unLog := self getLogDePosicionYOrientacion: marsRover.
+	
+	marsRover process: 'fr'.
+	
+	readLog := self obtenerReadStreamOf: unLog.
+	
+	self assert: readLog nextLine equals: (0@1) asString.
+	self assert: readLog nextLine equals: 'East'.! !
+
+!MarsRoverLoggerTests methodsFor: 'tests' stamp: 'HAW 20/Oct/2026, 7:38:43 pm (UTC)'!
+test12RoverVentanaRegistraCambioDePosicion
+	| unLog |
+	self initializeMarsRoverEn: (0@0) yUnaOrientacion: self north.
+	unLog := self getVentanaDePosicion: marsRover.
+	
+	marsRover process: 'f'.
+	
+	readLog := self obtenerReadStreamOf: unLog.
+	
+	self assert: readLog nextLine equals: 'Posicion: ', (0@1) asString, ', Apuntando a'.! !
+
+!MarsRoverLoggerTests methodsFor: 'tests' stamp: 'HAW 20/Oct/2026, 7:44:51 pm (UTC)'!
+test13RoverVentanaRegistraCambioDeOrientacion
+	| unLog |
+	self initializeMarsRoverEn: (0@0) yUnaOrientacion: self north.
+	unLog := self getVentanaDeOrientacion: marsRover.
+	
+	marsRover process: 'l'.
+	
+	readLog := self obtenerReadStreamOf: unLog.
+	
+	self assert: readLog nextLine equals: 'Posicion: ', (0@1) asString, ', Apuntando a Oeste'.! !
+
+
+!MarsRoverLoggerTests methodsFor: 'orientation' stamp: 'HAW 18/Oct/2026, 12:01:37 am (UTC)'!
+east
+	
 	^ MarsRoverHeadingEast ! !
 
-!LoggerDelMarsRoverTests methodsFor: 'cardinal' stamp: 'HAW 16/Oct/2026, 12:52:41 am (UTC)'!
+!MarsRoverLoggerTests methodsFor: 'orientation' stamp: 'HAW 17/Oct/2026, 11:43:26 pm (UTC)'!
 north
+	^ MarsRoverHeadingNorth! !
 
-	^ MarsRoverHeadingNorth ! !
-
-!LoggerDelMarsRoverTests methodsFor: 'cardinal' stamp: 'HAW 16/Oct/2026, 12:52:48 am (UTC)'!
+!MarsRoverLoggerTests methodsFor: 'orientation' stamp: 'HAW 18/Oct/2026, 12:00:47 am (UTC)'!
 south
-
+	
 	^ MarsRoverHeadingSouth ! !
 
-!LoggerDelMarsRoverTests methodsFor: 'cardinal' stamp: 'HAW 16/Oct/2026, 12:53:06 am (UTC)'!
+!MarsRoverLoggerTests methodsFor: 'orientation' stamp: 'HAW 18/Oct/2026, 12:02:38 am (UTC)'!
 west
-
+	
 	^ MarsRoverHeadingWest ! !
 
 
-!LoggerDelMarsRoverTests methodsFor: 'tests' stamp: 'HAW 16/Oct/2026, 11:23:30 pm (UTC)'!
-test01LoggerDePosicionamientoRegistraAvanceDelRover
+!MarsRoverLoggerTests methodsFor: 'logger' stamp: 'HAW 19/Oct/2026, 8:09:41 pm (UTC)'!
+getLogDePosicion: unRover
 	
-	| marsRover unLogger read |
-	marsRover := MarsRover at: (0@0) heading: self north.
-	unLogger := self getLogger: marsRover deTipo: self loggerPosicionTipo.
-
 	
-	marsRover process: 'f'.
-	read := self obtenerLectorDe: unLogger.
-	
-	self assert: read nextLine equals: (0@1) asString.
-	
+	^ MarsRoverLogger followPositionChangesOn: unRover 
 	! !
 
-!LoggerDelMarsRoverTests methodsFor: 'tests' stamp: 'HAW 16/Oct/2026, 11:23:18 pm (UTC)'!
-test02LoggerDePosicionamientoRegistraRetrocesoDelRover
+!MarsRoverLoggerTests methodsFor: 'logger' stamp: 'HAW 19/Oct/2026, 8:10:09 pm (UTC)'!
+getLogDePosicionYOrientacion: aMarsRover 
 	
-	| marsRover unLogger read |
-	marsRover := MarsRover at: (0@0) heading: self north.
-	unLogger := self getLogger: marsRover deTipo: self loggerPosicionTipo.
-	
-	
-	marsRover process: 'b'.
-	
-	read := self obtenerLectorDe: unLogger. 
-	self assert: read nextLine equals: (0@-1) asString.! !
+	^ MarsRoverLogger followPositionAndHeadingChangesOn: aMarsRover ! !
 
-!LoggerDelMarsRoverTests methodsFor: 'tests' stamp: 'HAW 16/Oct/2026, 11:23:55 pm (UTC)'!
-test03LoggerDePosicionamientoRegistraAvanceAlOesteDelRover
+!MarsRoverLoggerTests methodsFor: 'logger' stamp: 'HAW 19/Oct/2026, 8:09:46 pm (UTC)'!
+getLogDeRotacion: aMarsRover 
 	
-	| marsRover unLogger read |
-	marsRover := MarsRover at: (0@0) heading: self west.
-	unLogger := self getLogger: marsRover deTipo: self loggerPosicionTipo.
+	^ MarsRoverLogger followHeadingChangesOn: aMarsRover ! !
 
+!MarsRoverLoggerTests methodsFor: 'logger' stamp: 'HAW 20/Oct/2026, 7:39:21 pm (UTC)'!
+getVentanaDeOrientacion: aMarsRover 
 	
-	marsRover process: 'f'.
-	
-	read := self obtenerLectorDe: unLogger. 
-	self assert: read nextLine equals: (-1@0) asString.! !
+	^ MarsRoverStatusWindow followHeadingChangesOn: aMarsRover ! !
 
-!LoggerDelMarsRoverTests methodsFor: 'tests' stamp: 'HAW 16/Oct/2026, 11:24:05 pm (UTC)'!
-test04LoggerDePosicionamientoRegistraAvanceAlEsteDelRover
+!MarsRoverLoggerTests methodsFor: 'logger' stamp: 'HAW 20/Oct/2026, 7:38:43 pm (UTC)'!
+getVentanaDePosicion: aMarsRover 
 	
-	| marsRover unLogger read |
-	marsRover := MarsRover at: (0@0) heading: self east.
-	unLogger := self getLogger: marsRover deTipo: self loggerPosicionTipo.
-	
-	marsRover process: 'f'.
-	
-	read := self obtenerLectorDe: unLogger. 
-	self assert: read nextLine equals: (1@0) asString.! !
+	^ MarsRoverStatusWindow followPositionChangesOn: aMarsRover ! !
 
-!LoggerDelMarsRoverTests methodsFor: 'tests' stamp: 'HAW 16/Oct/2026, 11:24:46 pm (UTC)'!
-test05LoggerDeOrientacionRegistraRotacionAlOesteDelRover
+!MarsRoverLoggerTests methodsFor: 'logger' stamp: 'HAW 20/Oct/2026, 7:20:56 pm (UTC)'!
+obtenerReadStreamOf: unLog 
 	
-	| marsRover unLogger read |
-	marsRover := MarsRover at: (0@0) heading: self north.
-	unLogger := self getLogger: marsRover deTipo: self loggerOrientacionTipo.
-	
-	
-	marsRover process: 'l'.
-	
-	read := self obtenerLectorDe: unLogger. 
-	self assert: read nextLine equals: 'West'.! !
-
-!LoggerDelMarsRoverTests methodsFor: 'tests' stamp: 'HAW 16/Oct/2026, 11:25:10 pm (UTC)'!
-test06LoggerDeOrientacionRegistraRotacionAlSurDelRover
-	
-	| marsRover unLogger read |
-	marsRover := MarsRover at: (0@0) heading: self west.
-	unLogger := self getLogger: marsRover deTipo: self loggerOrientacionTipo.
-	
-	
-	
-	marsRover process: 'l'.
-	
-	read := self obtenerLectorDe: unLogger. 
-	self assert: read nextLine equals: 'South'.! !
-
-!LoggerDelMarsRoverTests methodsFor: 'tests' stamp: 'HAW 16/Oct/2026, 11:25:23 pm (UTC)'!
-test07LoggerDeOrientacionRegistraRotacionAlEsteDelRover
-	
-	| marsRover unLogger read |
-	marsRover := MarsRover at: (0@0) heading: self south.
-	unLogger := self getLogger: marsRover deTipo: self loggerOrientacionTipo.
-	
-	marsRover process: 'l'.
-	
-	read := self obtenerLectorDe: unLogger. 
-	self assert: read nextLine equals: 'East'.! !
-
-!LoggerDelMarsRoverTests methodsFor: 'tests' stamp: 'HAW 16/Oct/2026, 11:25:37 pm (UTC)'!
-test08LoggerDeOrientacionRegistraRotacionAlNorteDelRover
-	
-	| marsRover unLogger read |
-	marsRover := MarsRover at: (0@0) heading: self east.
-	unLogger := self getLogger: marsRover deTipo: self loggerOrientacionTipo.
-	
-	marsRover process: 'l'.
-	
-	read := self obtenerLectorDe: unLogger. 
-	self assert: read nextLine equals: 'North'.! !
-
-!LoggerDelMarsRoverTests methodsFor: 'tests' stamp: 'HAW 16/Oct/2026, 11:44:45 pm (UTC)'!
-test09RoverPuedeTenerMasDeUnLoggerDePosicionamiento
-	| marsRover unLogger unReadStream otroLogger otroReadStream unaPosicionEsperada |
-	marsRover := MarsRover at: (0@0) heading: self north.
-	
-	unLogger := self getLogger: marsRover deTipo: self loggerPosicionTipo .
-	otroLogger := self getLogger: marsRover deTipo: self loggerPosicionTipo .
-	
-	marsRover process: 'f'.
-	
-	unReadStream := self obtenerLectorDe: unLogger. 
-	otroReadStream := self obtenerLectorDe: otroLogger. 
-	
-	unaPosicionEsperada := (0@1) asString.
-	self assert: unReadStream nextLine equals: unaPosicionEsperada.
-	self assert: otroReadStream nextLine equals: unaPosicionEsperada.! !
-
-!LoggerDelMarsRoverTests methodsFor: 'tests' stamp: 'HAW 16/Oct/2026, 11:50:23 pm (UTC)'!
-test10RoverPuedeTenerMasDeUnLoggerDeOrientacion
-	| marsRover unLogger unReadStream otroLogger otroReadStream unaPosicionEsperada |
-	marsRover := MarsRover at: (0@0) heading: self north.
-	
-	unLogger := self getLogger: marsRover deTipo: self loggerOrientacionTipo .
-	otroLogger := self getLogger: marsRover deTipo: self loggerOrientacionTipo .
-	
-	marsRover process: 'l'.
-	
-	unReadStream := self obtenerLectorDe: unLogger. 
-	otroReadStream := self obtenerLectorDe: otroLogger. 
-	
-	unaPosicionEsperada := 'West'.
-	self assert: unReadStream nextLine equals: unaPosicionEsperada.
-	self assert: otroReadStream nextLine equals: unaPosicionEsperada.! !
-
-!LoggerDelMarsRoverTests methodsFor: 'tests' stamp: 'HAW 16/Oct/2026, 11:50:39 pm (UTC)'!
-test11
-	| marsRover unLogger unReadStream otroLogger otroReadStream unaPosicionEsperada |
-	marsRover := MarsRover at: (0@0) heading: self north.
-	
-	unLogger := self getLogger: marsRover deTipo: self loggerOrientacionTipo .
-	otroLogger := self getLogger: marsRover deTipo: self loggerOrientacionTipo .
-	
-	marsRover process: 'l'.
-	
-	unReadStream := self obtenerLectorDe: unLogger. 
-	otroReadStream := self obtenerLectorDe: otroLogger. 
-	
-	unaPosicionEsperada := 'West'.
-	self assert: unReadStream nextLine equals: unaPosicionEsperada.
-	self assert: otroReadStream nextLine equals: unaPosicionEsperada.! !
-
-
-!LoggerDelMarsRoverTests methodsFor: 'lectorDeStream' stamp: 'HAW 16/Oct/2026, 11:05:01 pm (UTC)'!
-getLogger: unMarsRover deTipo: tipoDeSeguimiento 
-
-	^ LoggerDelMarsRover initializeForAMarsRover: unMarsRover conUnTipoDeSeguimiento: tipoDeSeguimiento.! !
-
-!LoggerDelMarsRoverTests methodsFor: 'lectorDeStream' stamp: 'HAW 16/Oct/2026, 11:21:03 pm (UTC)'!
-loggerOrientacionTipo
-
-	^ #Orientacion! !
-
-!LoggerDelMarsRoverTests methodsFor: 'lectorDeStream' stamp: 'HAW 16/Oct/2026, 11:20:43 pm (UTC)'!
-loggerPosicionTipo
-
-	^ #Posicion! !
-
-!LoggerDelMarsRoverTests methodsFor: 'lectorDeStream' stamp: 'HAW 16/Oct/2026, 11:11:46 pm (UTC)'!
-obtenerLectorDe: unLogger
-
-	^ unLogger dameTusLogs.! !
+	"^ ReadStream on: unLog contents" 
+	^ unLog readStream! !
 
 
 !classDefinition: #MarsRoverTest category: #'MarsRover-WithHeading'!
