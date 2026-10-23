@@ -46,6 +46,30 @@ Account subclass: #Portfolio
 	poolDictionaries: ''
 	category: 'Portfolio-Solucion'!
 
+!Portfolio methodsFor: 'balance' stamp: 'HAW 25/May/2019, 2:19:36 pm (UTC)'!
+balance
+	
+	^accounts sum: [ :anAccount | anAccount balance ] ifEmpty: [ 0 ]! !
+
+
+!Portfolio methodsFor: 'transactions' stamp: 'HAW 25/May/2019, 2:42:55 pm (UTC)'!
+addTransactionsTo: aCollectionOfTransactions
+
+	accounts do: [ :anAccount | anAccount addTransactionsTo: aCollectionOfTransactions ]! !
+
+!Portfolio methodsFor: 'transactions' stamp: 'HAW 25/May/2019, 2:38:32 pm (UTC)'!
+transactions
+	
+	| transactions |
+	
+	transactions := OrderedCollection new.
+	accounts do: [ :anAccount | anAccount addTransactionsTo: transactions ].
+	
+	^transactions ! !
+
+
+
+
 !Portfolio methodsFor: 'accounts management' stamp: 'HAW 25/May/2019, 2:49:20 pm (UTC)'!
 accountsIncludes: anAccount
 
@@ -88,28 +112,6 @@ initialize
 	parents := OrderedCollection new.! !
 
 
-!Portfolio methodsFor: 'balance' stamp: 'HAW 25/May/2019, 2:19:36 pm (UTC)'!
-balance
-	
-	^accounts sum: [ :anAccount | anAccount balance ] ifEmpty: [ 0 ]! !
-
-
-!Portfolio methodsFor: 'transactions' stamp: 'HAW 25/May/2019, 2:42:55 pm (UTC)'!
-addTransactionsTo: aCollectionOfTransactions
-
-	accounts do: [ :anAccount | anAccount addTransactionsTo: aCollectionOfTransactions ]! !
-
-!Portfolio methodsFor: 'transactions' stamp: 'HAW 25/May/2019, 2:38:32 pm (UTC)'!
-transactions
-	
-	| transactions |
-	
-	transactions := OrderedCollection new.
-	accounts do: [ :anAccount | anAccount addTransactionsTo: transactions ].
-	
-	^transactions ! !
-
-
 !Portfolio methodsFor: 'composition' stamp: 'HAW 25/May/2019, 3:02:59 pm (UTC)'!
 addedTo: aPortfolio 
 	
@@ -150,11 +152,30 @@ signalCanNotAddAccount
 	
 	self error: self class canNotAddAccountErrorMessage! !
 
+
+!Portfolio methodsFor: 'reports' stamp: 'HAW 23/Oct/2026, 7:40:29 pm (UTC)'!
+reportOnThisBuffer: aReportBuffer 
+	
+	accounts do: [:anAccount | anAccount reportOnThisBuffer: aReportBuffer].
+	
+	aReportBuffer add: 'Balance = ', self balance asString, '.'. ! !
+
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
 !classDefinition: 'Portfolio class' category: #'Portfolio-Solucion'!
 Portfolio class
 	instanceVariableNames: ''!
+
+!Portfolio class methodsFor: 'msg' stamp: 'HAW 13/Oct/2026, 3:43:49 pm (UTC)'!
+errorDeAgregarUnaCuentaYaAgregada
+	
+	^ 'Libido'! !
+
+!Portfolio class methodsFor: 'msg' stamp: 'HAW 13/Oct/2026, 3:38:03 pm (UTC)'!
+errorDeAgregarseAsiMismo
+	
+	^ 'Mal'! !
+
 
 !Portfolio class methodsFor: 'as yet unclassified' stamp: 'HAW 25/May/2019, 2:48:55 pm (UTC)'!
 canNotAddAccountErrorMessage
@@ -228,10 +249,60 @@ isComposedBy: anAccount
 	^self = anAccount ! !
 
 
+
+
 !ReceptiveAccount methodsFor: 'composition' stamp: 'HAW 25/May/2019, 3:03:32 pm (UTC)'!
 addedTo: aPortfolio 
 	
 	! !
+
+
+!ReceptiveAccount methodsFor: 'reports' stamp: 'HAW 23/Oct/2026, 6:56:26 pm (UTC)'!
+reportOnThisBuffer: aReportBuffer 
+	
+	transactions do: [ :aTransaction | 
+	
+	(aTransaction isKindOf: Withdraw) ifTrue: [aReportBuffer add: 'Extráccion por ', (aTransaction value asString), '.'].
+	(aTransaction isKindOf: Deposit) ifTrue: [aReportBuffer add: 'Depósito por ', (aTransaction value asString), '.'].
+	(aTransaction isKindOf: DepositLeg) ifTrue: [aReportBuffer add: 'Entrada por transferencia de ', (aTransaction value asString) , '.'].
+	(aTransaction isKindOf: WithdrawLeg) ifTrue: [aReportBuffer add: 'Salida por transferencia de ', (aTransaction value asString) , '.'].
+		
+	].	
+	
+	aReportBuffer add: 'Balance = ', self balance asString , '.'.! !
+
+
+!classDefinition: #AccountReporter category: #'Portfolio-Solucion'!
+Object subclass: #AccountReporter
+	instanceVariableNames: 'reportedAccount reports'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'Portfolio-Solucion'!
+
+!AccountReporter methodsFor: 'init' stamp: 'HAW 23/Oct/2026, 6:33:40 pm (UTC)'!
+initializeOn: anAccount 
+	
+	reportedAccount := anAccount.
+	reports := OrderedCollection new.! !
+
+
+!AccountReporter methodsFor: 'report' stamp: 'HAW 23/Oct/2026, 6:37:40 pm (UTC)'!
+report
+	
+	reportedAccount reportOnThisBuffer: reports.
+	
+	^ reports ! !
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+!classDefinition: 'AccountReporter class' category: #'Portfolio-Solucion'!
+AccountReporter class
+	instanceVariableNames: ''!
+
+!AccountReporter class methodsFor: 'instance creation' stamp: 'HAW 23/Oct/2026, 6:19:36 pm (UTC)'!
+on: anAccount1 
+	
+	^self new initializeOn: anAccount1 ! !
 
 
 !classDefinition: #AccountTransaction category: #'Portfolio-Solucion'!
@@ -247,6 +318,11 @@ value
 	self subclassResponsibility ! !
 
 
+!AccountTransaction methodsFor: 'balance' stamp: 'HAW 9/Oct/2026, 11:55:39 pm (UTC)'!
+acumulateEnEsteBalance: unBalanceAcumuladoParcial
+
+	self subclassResponsibility! !
+
 !AccountTransaction methodsFor: 'balance' stamp: 'HAW 25/May/2019, 2:25:39 pm (UTC)'!
 affectBalance: aBalance
 
@@ -258,7 +334,7 @@ affectBalance: aBalance
 AccountTransaction class
 	instanceVariableNames: ''!
 
-!AccountTransaction class methodsFor: 'instance creation' stamp: 'NR 21/Oct/2019, 9:54:27 pm (UTC)'!
+!AccountTransaction class methodsFor: 'instance creation' stamp: 'HAW 22/Oct/2026, 5:24:06 pm (UTC)'!
 register: aValue on: account
 
 	| transaction |
@@ -282,16 +358,20 @@ initializeFor: aValue
 	value := aValue ! !
 
 
-!Deposit methodsFor: 'value' stamp: 'HernanWilkinson 13/Jul/2011, 9:38:00 pm (UTC)'!
-value
-
-	^ value! !
-
+!Deposit methodsFor: 'balance' stamp: 'HAW 9/Oct/2026, 11:55:33 pm (UTC)'!
+acumulateEnEsteBalance: unBalanceAcumuladoParcial 
+	^ unBalanceAcumuladoParcial + value! !
 
 !Deposit methodsFor: 'balance' stamp: 'HAW 25/May/2019, 2:25:02 pm (UTC)'!
 affectBalance: aBalance
 
 	^aBalance + value ! !
+
+
+!Deposit methodsFor: 'value' stamp: 'HernanWilkinson 13/Jul/2011, 9:38:00 pm (UTC)'!
+value
+
+	^ value! !
 
 
 !Deposit methodsFor: 'as yet unclassified' stamp: 'HAW 21/Oct/2026, 1:02:19 am (UTC)'!
@@ -310,6 +390,85 @@ for: aValue
 	^ self new initializeFor: aValue ! !
 
 
+!classDefinition: #TransferLeg category: #'Portfolio-Solucion'!
+AccountTransaction subclass: #TransferLeg
+	instanceVariableNames: 'transferencia'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'Portfolio-Solucion'!
+
+!TransferLeg methodsFor: 'initialization' stamp: 'HAW 22/Oct/2026, 6:07:11 pm (UTC)'!
+initializeFor: aValue ofATransaction: aTransaction 
+
+	
+	transferencia := aTransaction. ! !
+
+
+!TransferLeg methodsFor: 'getter' stamp: 'HAW 22/Oct/2026, 5:42:13 pm (UTC)'!
+transfer
+	^ transferencia ! !
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+!classDefinition: 'TransferLeg class' category: #'Portfolio-Solucion'!
+TransferLeg class
+	instanceVariableNames: ''!
+
+!TransferLeg class methodsFor: 'instance creation' stamp: 'HAW 22/Oct/2026, 5:40:42 pm (UTC)'!
+for: aValue ofATransaction: aTransaction 
+
+	^ self new initializeFor: aValue ofATransaction: aTransaction ! !
+
+!TransferLeg class methodsFor: 'instance creation' stamp: 'HAW 22/Oct/2026, 5:40:42 pm (UTC)'!
+ofATransaction: aTransaction register: aValue on: account
+
+	| transaction |
+	
+	transaction := self for: aValue ofATransaction: aTransaction .
+	account register: transaction.
+		
+	^ transaction! !
+
+
+!classDefinition: #DepositLeg category: #'Portfolio-Solucion'!
+TransferLeg subclass: #DepositLeg
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'Portfolio-Solucion'!
+
+!DepositLeg methodsFor: 'balance' stamp: 'HAW 22/Oct/2026, 6:08:32 pm (UTC)'!
+affectBalance: aBalance
+
+	^aBalance + self value ! !
+
+
+!DepositLeg methodsFor: 'value' stamp: 'HAW 22/Oct/2026, 6:08:27 pm (UTC)'!
+value
+
+	^ transferencia value! !
+
+
+!classDefinition: #WithdrawLeg category: #'Portfolio-Solucion'!
+TransferLeg subclass: #WithdrawLeg
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'Portfolio-Solucion'!
+
+
+!WithdrawLeg methodsFor: 'balance' stamp: 'HAW 22/Oct/2026, 6:08:13 pm (UTC)'!
+affectBalance: aBalance
+
+	^aBalance - self value! !
+
+
+!WithdrawLeg methodsFor: 'value' stamp: 'HAW 22/Oct/2026, 6:08:07 pm (UTC)'!
+value
+
+	^ transferencia value! !
+
+
 !classDefinition: #Withdraw category: #'Portfolio-Solucion'!
 AccountTransaction subclass: #Withdraw
 	instanceVariableNames: 'value'
@@ -323,16 +482,20 @@ initializeFor: aValue
 	value := aValue ! !
 
 
-!Withdraw methodsFor: 'value' stamp: 'HernanWilkinson 13/Jul/2011, 9:33:00 pm (UTC)'!
-value
-
-	^ value! !
-
+!Withdraw methodsFor: 'balance' stamp: 'HAW 9/Oct/2026, 11:55:20 pm (UTC)'!
+acumulateEnEsteBalance: unBalanceAcumuladoParcial 
+	^ unBalanceAcumuladoParcial - value! !
 
 !Withdraw methodsFor: 'balance' stamp: 'HAW 25/May/2019, 2:25:15 pm (UTC)'!
 affectBalance: aBalance
 
 	^aBalance - value! !
+
+
+!Withdraw methodsFor: 'value' stamp: 'HernanWilkinson 13/Jul/2011, 9:33:00 pm (UTC)'!
+value
+
+	^ value! !
 
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
@@ -346,76 +509,153 @@ for: aValue
 	^ self new initializeFor: aValue ! !
 
 
-!classDefinition: #PataDeDeposito category: #'Portfolio-Solucion'!
-Object subclass: #PataDeDeposito
-	instanceVariableNames: 'renameMe'
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'Portfolio-Solucion'!
-
-!PataDeDeposito methodsFor: 'initialization' stamp: 'HAW 21/Oct/2026, 1:02:03 am (UTC)'!
-initializeFor: aRenameMe 
-	
-	renameMe := aRenameMe.
-	
-	aRenameMe sosParteDeEstaTransaccion: self.! !
-
-
-!PataDeDeposito methodsFor: 'getter' stamp: 'HAW 21/Oct/2026, 1:01:31 am (UTC)'!
-extractionLeg
-	
-	! !
-
-"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
-
-!classDefinition: 'PataDeDeposito class' category: #'Portfolio-Solucion'!
-PataDeDeposito class
-	instanceVariableNames: ''!
-
-!PataDeDeposito class methodsFor: 'instance creation' stamp: 'HAW 21/Oct/2026, 1:01:01 am (UTC)'!
-for: aRenameMe 
-	
-	^self new initializeFor: aRenameMe ! !
-
-
-!classDefinition: #Transaccion category: #'Portfolio-Solucion'!
-Object subclass: #Transaccion
+!classDefinition: #Transferencia category: #'Portfolio-Solucion'!
+Object subclass: #Transferencia
 	instanceVariableNames: 'deposito extraccion monto'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Portfolio-Solucion'!
 
-!Transaccion methodsFor: 'initialization' stamp: 'HAW 21/Oct/2026, 12:55:13 am (UTC)'!
-initializeWithADepositLeg: unDeposito withAnExtractionLeg: unaExtraccion porUnMonto: unMonto 
+!Transferencia methodsFor: 'initialization' stamp: 'HAW 22/Oct/2026, 6:03:57 pm (UTC)'!
+initializeFromAnAccount: unaCuentaQueTransfiere toAnotherAccount: unaCuentaQueRecibe forAnAmount: unMonto 
 	
-	deposito := unDeposito.
-	extraccion := unaExtraccion.
+	deposito := DepositLeg ofATransaction: self register: unMonto  on: unaCuentaQueRecibe .
+	extraccion := WithdrawLeg ofATransaction: self register: unMonto  on: unaCuentaQueTransfiere . 
+	
 	monto := unMonto.! !
 
 
-!Transaccion methodsFor: 'getter' stamp: 'HAW 21/Oct/2026, 12:51:50 am (UTC)'!
+!Transferencia methodsFor: 'getter' stamp: 'HAW 21/Oct/2026, 12:51:50 am (UTC)'!
 depositLeg
 	^ deposito ! !
 
-!Transaccion methodsFor: 'getter' stamp: 'HAW 21/Oct/2026, 12:55:22 am (UTC)'!
+!Transferencia methodsFor: 'getter' stamp: 'HAW 21/Oct/2026, 12:55:22 am (UTC)'!
 extractionLeg
 	^ extraccion ! !
 
+
+!Transferencia methodsFor: 'evaluating' stamp: 'HAW 22/Oct/2026, 6:04:49 pm (UTC)'!
+value
+	^ monto! !
+
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
-!classDefinition: 'Transaccion class' category: #'Portfolio-Solucion'!
-Transaccion class
+!classDefinition: 'Transferencia class' category: #'Portfolio-Solucion'!
+Transferencia class
 	instanceVariableNames: ''!
 
-!Transaccion class methodsFor: 'instance creation' stamp: 'HAW 21/Oct/2026, 1:00:49 am (UTC)'!
+!Transferencia class methodsFor: 'instance creation' stamp: 'HAW 22/Oct/2026, 5:07:04 pm (UTC)'!
 desde: account1 hacia: anotherAccount2 porUnMonto: unMonto 
 	
-	| unDeposito unaExtraccion |
-	unDeposito := PataDeDeposito for: (Deposit register: unMonto  on: anotherAccount2).
 	
-	unaExtraccion := Withdraw register: unMonto  on: account1. 
 	
-	^self new initializeWithADepositLeg: unDeposito withAnExtractionLeg: unaExtraccion porUnMonto: unMonto.! !
+	^self new initializeFromAnAccount: account1 toAnotherAccount: anotherAccount2 forAnAmount: unMonto.! !
+
+
+!classDefinition: #AccountReporterTests category: #'Portfolio-Solucion'!
+TestCase subclass: #AccountReporterTests
+	instanceVariableNames: 'anAccount aReporter anotherAccount aPortfolio'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'Portfolio-Solucion'!
+
+!AccountReporterTests methodsFor: 'tests' stamp: 'HAW 23/Oct/2026, 7:10:40 pm (UTC)'!
+test01ReportadorSoloReportaBalanceDeCuentaSinTransacciones
+	
+	anAccount := ReceptiveAccount new.	
+	aReporter := AccountReporter on: anAccount.
+	
+	self assert: aReporter report equals: {'Balance = 0.'} asOrderedCollection.! !
+
+!AccountReporterTests methodsFor: 'tests' stamp: 'HAW 23/Oct/2026, 6:58:58 pm (UTC)'!
+test02ReportadorReportaExtraccion
+	
+	anAccount := ReceptiveAccount new.	
+	aReporter := AccountReporter on: anAccount.
+	
+	Withdraw register: 50 on: anAccount. 
+	
+	self assert: aReporter report 
+	equals: {'Extráccion por 50.'. 
+			'Balance = -50.'.} asOrderedCollection.! !
+
+!AccountReporterTests methodsFor: 'tests' stamp: 'HAW 23/Oct/2026, 6:58:58 pm (UTC)'!
+test03ReportadorReportaDeposito
+	
+	anAccount := ReceptiveAccount new.	
+	aReporter := AccountReporter on: anAccount.
+	
+	Deposit register: 50 on: anAccount. 
+	
+	self assert: aReporter report 
+	equals: {'Depósito por 50.'. 
+			'Balance = 50.'.} 
+			asOrderedCollection.! !
+
+!AccountReporterTests methodsFor: 'tests' stamp: 'HAW 23/Oct/2026, 6:58:58 pm (UTC)'!
+test04ReportadorReportaEntradaPorTransferencia
+	
+	anAccount := ReceptiveAccount new.	
+	aReporter := AccountReporter on: anAccount.
+	anotherAccount := ReceptiveAccount new.	
+	
+	Transferencia desde: anotherAccount hacia: anAccount porUnMonto: 50.
+	
+	self assert: aReporter report 
+	equals: {'Entrada por transferencia de 50.'. 
+			'Balance = 50.'.} 
+			asOrderedCollection.! !
+
+!AccountReporterTests methodsFor: 'tests' stamp: 'HAW 23/Oct/2026, 6:58:58 pm (UTC)'!
+test05ReportadorReportaSalidaPorTransferencia
+	
+	anAccount := ReceptiveAccount new.	
+	aReporter := AccountReporter on: anAccount.
+	anotherAccount := ReceptiveAccount new.	
+	
+	Transferencia desde: anAccount hacia: anotherAccount porUnMonto: 50.
+	
+	self assert: aReporter report 
+	equals: {'Salida por transferencia de 50.'. 
+			'Balance = -50.'.} 
+			asOrderedCollection.! !
+
+!AccountReporterTests methodsFor: 'tests' stamp: 'HAW 23/Oct/2026, 7:08:14 pm (UTC)'!
+test06ReportadorReportaPortfolioVacio
+	
+	anAccount := ReceptiveAccount new.	
+	aPortfolio := Portfolio new.
+	aReporter := AccountReporter on: aPortfolio.
+	
+	self assert: aReporter report 
+	equals: { 'Balance = 0.'.} asOrderedCollection.! !
+
+!AccountReporterTests methodsFor: 'tests' stamp: 'HAW 23/Oct/2026, 7:39:55 pm (UTC)'!
+test07ReportadorReportaHistoriaDePortfolioConCuentas
+	
+	anAccount := ReceptiveAccount new.	
+	anotherAccount := ReceptiveAccount new.	
+	aPortfolio := (Portfolio new) add: anAccount; add: anotherAccount.
+	aReporter := AccountReporter on: aPortfolio.
+	
+	Deposit register: 100 on: anAccount. 
+	Withdraw register: 77 on: anAccount. 
+	Transferencia desde: anotherAccount hacia: anAccount porUnMonto: 1500.
+
+	Deposit register: 50 on: anotherAccount. 
+	
+	self assert: aReporter report 
+	equals: {'Depósito por 100.'.
+			'Extráccion por 77.'. 
+			'Entrada por transferencia de 1500.'. 
+			'Balance = ', anAccount balance asString, '.' .
+			
+			'Salida por transferencia de 1500.'. 
+			'Depósito por 50.'.
+			'Balance = ', anotherAccount balance asString, '.' .
+			
+			'Balance = ', (aPortfolio balance) asString, '.' .} 
+			asOrderedCollection.! !
 
 
 !classDefinition: #PortfolioTest category: #'Portfolio-Solucion'!
@@ -430,7 +670,7 @@ test01BalanceOfPortfolioWithoutAccountsIsZero
 
 	self assert: 0 equals: Portfolio new balance! !
 
-!PortfolioTest methodsFor: 'tests' stamp: 'NR 27/May/2021, 8:36:04 pm (UTC)'!
+!PortfolioTest methodsFor: 'tests' stamp: 'HAW 23/Oct/2026, 3:04:40 am (UTC)'!
 test02BalanceOfPortfolioWithAccountsIsSumOfAccountsBalance
 
 	| account portfolio |
@@ -441,7 +681,7 @@ test02BalanceOfPortfolioWithAccountsIsSumOfAccountsBalance
 	
 	self assert: account balance equals: portfolio balance! !
 
-!PortfolioTest methodsFor: 'tests' stamp: 'HAW 25/May/2019, 2:23:25 pm (UTC)'!
+!PortfolioTest methodsFor: 'tests' stamp: 'HAW 23/Oct/2026, 3:04:55 am (UTC)'!
 test03BalanceOfPortfolioIsCalculatedRecursivelyOnPortfolios
 
 	| simplePortfolioAccount simplePortfolio composedPortfolioAccount composedPortofolio |
@@ -461,7 +701,7 @@ test04PortfolioWithoutAccountsHasNoRegisteredTransaction
 
 	self deny: (Portfolio new hasRegistered: (Deposit for: 100))! !
 
-!PortfolioTest methodsFor: 'tests' stamp: 'HAW 25/May/2019, 2:43:11 pm (UTC)'!
+!PortfolioTest methodsFor: 'tests' stamp: 'HAW 23/Oct/2026, 3:05:05 am (UTC)'!
 test05PortfolioHasRegisteredItsAccountsTransactions
 
 	| account portfolio deposit |
@@ -472,7 +712,7 @@ test05PortfolioHasRegisteredItsAccountsTransactions
 	
 	self assert: (portfolio hasRegistered: deposit)! !
 
-!PortfolioTest methodsFor: 'tests' stamp: 'HAW 25/May/2019, 2:58:06 pm (UTC)'!
+!PortfolioTest methodsFor: 'tests' stamp: 'HAW 23/Oct/2026, 3:05:23 am (UTC)'!
 test06PortfolioLooksForRegisteredTransactionsRecursively
 
 	| simplePortfolioAccount simplePortfolio composedPortfolioAccount composedPortfolio composedPortfolioAccountWithdraw simplePortfolioAccountDeposit |
@@ -493,7 +733,7 @@ test07PortfolioHasNoTransactionWhenHasNoAccounts
 
 	self assert: Portfolio new transactions isEmpty! !
 
-!PortfolioTest methodsFor: 'tests' stamp: 'NR 22/Jun/2020, 10:31:19 am (UTC)'!
+!PortfolioTest methodsFor: 'tests' stamp: 'HAW 23/Oct/2026, 3:05:33 am (UTC)'!
 test08PortfolioTransactionsIncludesAllItsAccountsTransactions
 
 	| account portfolio accountDeposit anotherAccount portfolioTransactions anotherAccountWithdraw |
@@ -510,7 +750,7 @@ test08PortfolioTransactionsIncludesAllItsAccountsTransactions
 	self assert: (portfolioTransactions includes: accountDeposit).
 	self assert: (portfolioTransactions includes: anotherAccountWithdraw)! !
 
-!PortfolioTest methodsFor: 'tests' stamp: 'HAW 25/May/2019, 2:58:20 pm (UTC)'!
+!PortfolioTest methodsFor: 'tests' stamp: 'HAW 23/Oct/2026, 3:05:43 am (UTC)'!
 test09PortfolioTransactionsAreCalculatedRecursively
 
 	| simplePortfolioAccount simplePortfolio composedPortfolioAccount composedPortfolio composedPortfolioAccountWithdraw simplePortfolioAccountDeposit composedPortfolioTransactions |
@@ -651,7 +891,7 @@ test01ReceptiveAccountHaveZeroAsBalanceWhenCreated
 	self assert: 0 equals: account balance .
 ! !
 
-!ReceptiveAccountTest methodsFor: 'tests' stamp: 'HAW 23/May/2019, 6:19:54 pm (UTC)'!
+!ReceptiveAccountTest methodsFor: 'tests' stamp: 'HAW 22/Oct/2026, 6:09:10 pm (UTC)'!
 test02DepositIncreasesBalanceOnTransactionValue 
 
 	| account |
@@ -662,7 +902,7 @@ test02DepositIncreasesBalanceOnTransactionValue
 	self assert: 100 equals: account balance .
 ! !
 
-!ReceptiveAccountTest methodsFor: 'tests' stamp: 'HAW 23/May/2019, 6:20:02 pm (UTC)'!
+!ReceptiveAccountTest methodsFor: 'tests' stamp: 'HAW 22/Oct/2026, 6:09:20 pm (UTC)'!
 test03WithdrawDecreasesBalanceOnTransactionValue 
 
 	| account |
@@ -674,7 +914,7 @@ test03WithdrawDecreasesBalanceOnTransactionValue
 	self assert: 50 equals: account balance .
 ! !
 
-!ReceptiveAccountTest methodsFor: 'tests' stamp: 'HAW 23/May/2019, 6:20:32 pm (UTC)'!
+!ReceptiveAccountTest methodsFor: 'tests' stamp: 'HAW 22/Oct/2026, 6:09:28 pm (UTC)'!
 test04WithdrawValueMustBePositive 
 
 	| account withdrawValue |
@@ -685,7 +925,7 @@ test04WithdrawValueMustBePositive
 	self assert: withdrawValue equals: (Withdraw register: withdrawValue on: account) value
 ! !
 
-!ReceptiveAccountTest methodsFor: 'tests' stamp: 'HAW 23/May/2019, 6:20:46 pm (UTC)'!
+!ReceptiveAccountTest methodsFor: 'tests' stamp: 'HAW 22/Oct/2026, 6:09:35 pm (UTC)'!
 test05ReceptiveAccountKnowsRegisteredTransactions 
 
 	| account deposit withdraw |
@@ -711,7 +951,7 @@ test06ReceptiveAccountDoNotKnowNotRegisteredTransactions
 	self deny: (account hasRegistered:withdraw).
 ! !
 
-!ReceptiveAccountTest methodsFor: 'tests' stamp: 'HAW 23/May/2019, 6:21:24 pm (UTC)'!
+!ReceptiveAccountTest methodsFor: 'tests' stamp: 'HAW 22/Oct/2026, 6:09:41 pm (UTC)'!
 test07AccountKnowsItsTransactions 
 
 	| account1 deposit1 |
@@ -725,15 +965,15 @@ test07AccountKnowsItsTransactions
 ! !
 
 
-!classDefinition: #TransaccionesTest category: #'Portfolio-Solucion'!
-TestCase subclass: #TransaccionesTest
+!classDefinition: #TransferenciaTest category: #'Portfolio-Solucion'!
+TestCase subclass: #TransferenciaTest
 	instanceVariableNames: 'transaccion account anotherAccount deposito'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Portfolio-Solucion'!
 
-!TransaccionesTest methodsFor: 'as yet unclassified' stamp: 'HAW 21/Oct/2026, 12:45:35 am (UTC)'!
-test01
+!TransferenciaTest methodsFor: 'as yet unclassified' stamp: 'HAW 23/Oct/2026, 6:44:07 pm (UTC)'!
+test01TransaccionAfectaBalanceDeLasCuentasInvolucradas
 	
 	
 	account := ReceptiveAccount new.
@@ -741,13 +981,13 @@ test01
 	
 	Deposit register: 50 on: account.
 	
-	transaccion := Transaccion desde: account hacia: anotherAccount porUnMonto: 50.
+	transaccion := Transferencia desde: account hacia: anotherAccount porUnMonto: 50.
 	
 	self assert: account balance equals: 0.
 	self assert: anotherAccount balance equals: 50.! !
 
-!TransaccionesTest methodsFor: 'as yet unclassified' stamp: 'HAW 21/Oct/2026, 12:54:09 am (UTC)'!
-test02
+!TransferenciaTest methodsFor: 'as yet unclassified' stamp: 'HAW 23/Oct/2026, 6:44:07 pm (UTC)'!
+test02CuentaRegistraDeposito
 	
 	
 	account := ReceptiveAccount new.
@@ -755,13 +995,13 @@ test02
 	
 	deposito := Deposit register: 50 on: account.
 	
-	transaccion := Transaccion desde: account hacia: anotherAccount porUnMonto: 50.
+	transaccion := Transferencia desde: account hacia: anotherAccount porUnMonto: 50.
 	
 	self assert: (anotherAccount hasRegistered: (transaccion depositLeg)).
 	! !
 
-!TransaccionesTest methodsFor: 'as yet unclassified' stamp: 'HAW 21/Oct/2026, 12:55:29 am (UTC)'!
-test03
+!TransferenciaTest methodsFor: 'as yet unclassified' stamp: 'HAW 23/Oct/2026, 6:44:07 pm (UTC)'!
+test03CuentaRegistraExtraccion
 	
 	
 	account := ReceptiveAccount new.
@@ -769,13 +1009,13 @@ test03
 	
 	deposito := Deposit register: 50 on: account.
 	
-	transaccion := Transaccion desde: account hacia: anotherAccount porUnMonto: 50.
+	transaccion := Transferencia desde: account hacia: anotherAccount porUnMonto: 50.
 	
 	self assert: (account hasRegistered: (transaccion extractionLeg)).
 	! !
 
-!TransaccionesTest methodsFor: 'as yet unclassified' stamp: 'HAW 21/Oct/2026, 12:56:44 am (UTC)'!
-test04
+!TransferenciaTest methodsFor: 'as yet unclassified' stamp: 'HAW 23/Oct/2026, 6:44:07 pm (UTC)'!
+test04PataDepositoNavegaATransferencia
 	
 	
 	account := ReceptiveAccount new.
@@ -783,7 +1023,34 @@ test04
 	
 	deposito := Deposit register: 50 on: account.
 	
-	transaccion := Transaccion desde: account hacia: anotherAccount porUnMonto: 50.
+	transaccion := Transferencia desde: account hacia: anotherAccount porUnMonto: 50.
 	
-	self assert: transaccion depositLeg extractionLeg equals: transaccion extractionLeg .
+	self assert: transaccion depositLeg transfer equals: transaccion.
 	! !
+
+!TransferenciaTest methodsFor: 'as yet unclassified' stamp: 'HAW 23/Oct/2026, 6:44:07 pm (UTC)'!
+test05PataExtraccionNavegaATransferencia
+	
+	
+	account := ReceptiveAccount new.
+	anotherAccount := ReceptiveAccount new.
+	
+	deposito := Deposit register: 50 on: account.
+	
+	transaccion := Transferencia desde: account hacia: anotherAccount porUnMonto: 50.
+	
+	self assert: transaccion extractionLeg transfer equals: transaccion.
+	! !
+
+!TransferenciaTest methodsFor: 'as yet unclassified' stamp: 'HAW 23/Oct/2026, 6:44:07 pm (UTC)'!
+test06TransferenciaContieneElMonto
+	
+	
+	account := ReceptiveAccount new.
+	anotherAccount := ReceptiveAccount new.
+	
+	
+	transaccion := Transferencia desde: account hacia: anotherAccount porUnMonto: 50.
+	
+	self assert: account balance equals: transaccion value *-1.
+	self assert: anotherAccount balance equals: transaccion value.! !
