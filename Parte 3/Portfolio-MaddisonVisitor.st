@@ -68,8 +68,6 @@ transactions
 	^transactions ! !
 
 
-
-
 !Portfolio methodsFor: 'accounts management' stamp: 'HAW 25/May/2019, 2:49:20 pm (UTC)'!
 accountsIncludes: anAccount
 
@@ -153,11 +151,11 @@ signalCanNotAddAccount
 	self error: self class canNotAddAccountErrorMessage! !
 
 
-!Portfolio methodsFor: 'reports' stamp: 'HAW 23/Oct/2026, 7:58:32 pm (UTC)'!
-reportOnThisBuffer: aReportBuffer 
+!Portfolio methodsFor: 'reports' stamp: 'HAW 24/Oct/2026, 12:34:41 pm (UTC)'!
+accept: aReportBuffer 
 	
-	accounts do: [:anAccount | anAccount reportOnThisBuffer: aReportBuffer].
-	aReportBuffer reportOnThisPortfolio: self. ! !
+	accounts do: [:anAccount | anAccount accept: aReportBuffer].
+	aReportBuffer visitPortfolio: self. ! !
 
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
@@ -248,90 +246,24 @@ isComposedBy: anAccount
 	^self = anAccount ! !
 
 
-
-
 !ReceptiveAccount methodsFor: 'composition' stamp: 'HAW 25/May/2019, 3:03:32 pm (UTC)'!
 addedTo: aPortfolio 
 	
 	! !
 
 
-!ReceptiveAccount methodsFor: 'reports' stamp: 'HAW 23/Oct/2026, 7:58:27 pm (UTC)'!
-reportOnThisBuffer: aReportBuffer 
+!ReceptiveAccount methodsFor: 'reports' stamp: 'HAW 24/Oct/2026, 12:34:21 pm (UTC)'!
+accept: aReportBuffer 
 	
 
-	transactions do: [ :aTransaction | aTransaction reportOnThisBuffer: aReportBuffer ].
-	aReportBuffer reportOnThisReceptiveAccount: self.! !
+	transactions do: [ :aTransaction | aTransaction accept: aReportBuffer ].
+	aReportBuffer visitReceptiveAccount: self.! !
 
 
 !ReceptiveAccount methodsFor: 'transfer net' stamp: 'HAW 23/Oct/2026, 8:15:22 pm (UTC)'!
 reportTransferOnThisReport: anAccountReporter 
 	
 	transactions do: [:aTransaction | aTransaction reportTransferOnThisReport: anAccountReporter].! !
-
-
-!classDefinition: #AccountReporter category: #'Portfolio-Solucion'!
-Object subclass: #AccountReporter
-	instanceVariableNames: 'reportedAccount reports'
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'Portfolio-Solucion'!
-
-!AccountReporter methodsFor: 'init' stamp: 'HAW 23/Oct/2026, 6:33:40 pm (UTC)'!
-initializeOn: anAccount 
-	
-	reportedAccount := anAccount.
-	reports := OrderedCollection new.! !
-
-
-!AccountReporter methodsFor: 'report' stamp: 'HAW 23/Oct/2026, 7:45:39 pm (UTC)'!
-report
-	
-	reportedAccount reportOnThisBuffer: self.
-	
-	^ reports ! !
-
-
-!AccountReporter methodsFor: 'visitor' stamp: 'HAW 23/Oct/2026, 7:58:55 pm (UTC)'!
-reportOnThisDeposit: aDeposit 
-
-	reports add: 'Depósito por ', (aDeposit value asString), '.'! !
-
-!AccountReporter methodsFor: 'visitor' stamp: 'HAW 23/Oct/2026, 7:54:41 pm (UTC)'!
-reportOnThisDepositLeg: aDepositLeg 
-	
-	reports add: 'Entrada por transferencia de ', (aDepositLeg value asString) , '.'! !
-
-!AccountReporter methodsFor: 'visitor' stamp: 'HAW 23/Oct/2026, 7:58:06 pm (UTC)'!
-reportOnThisPortfolio: aPortfolio 
-	
-	reports add: 'Balance = ', aPortfolio balance asString , '.'.! !
-
-!AccountReporter methodsFor: 'visitor' stamp: 'HAW 23/Oct/2026, 7:51:11 pm (UTC)'!
-reportOnThisReceptiveAccount: aReceptiveAccount 
-	
-	reports add: 'Balance = ', aReceptiveAccount balance asString , '.'.! !
-
-!AccountReporter methodsFor: 'visitor' stamp: 'HAW 23/Oct/2026, 7:53:17 pm (UTC)'!
-reportOnThisWithdraw: aWithdraw 
-	
-	reports add: 'Extráccion por ', (aWithdraw value asString), '.'.! !
-
-!AccountReporter methodsFor: 'visitor' stamp: 'HAW 23/Oct/2026, 7:56:00 pm (UTC)'!
-reportOnThisWithdrawLeg: aWithdrawLeg 
-	
-	reports add: 'Salida por transferencia de ', (aWithdrawLeg value asString) , '.'! !
-
-"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
-
-!classDefinition: 'AccountReporter class' category: #'Portfolio-Solucion'!
-AccountReporter class
-	instanceVariableNames: ''!
-
-!AccountReporter class methodsFor: 'instance creation' stamp: 'HAW 23/Oct/2026, 6:19:36 pm (UTC)'!
-on: anAccount1 
-	
-	^self new initializeOn: anAccount1 ! !
 
 
 !classDefinition: #AccountTransaction category: #'Portfolio-Solucion'!
@@ -346,11 +278,6 @@ value
 
 	self subclassResponsibility ! !
 
-
-!AccountTransaction methodsFor: 'balance' stamp: 'HAW 9/Oct/2026, 11:55:39 pm (UTC)'!
-acumulateEnEsteBalance: unBalanceAcumuladoParcial
-
-	self subclassResponsibility! !
 
 !AccountTransaction methodsFor: 'balance' stamp: 'HAW 25/May/2019, 2:25:39 pm (UTC)'!
 affectBalance: aBalance
@@ -387,10 +314,6 @@ initializeFor: aValue
 	value := aValue ! !
 
 
-!Deposit methodsFor: 'balance' stamp: 'HAW 9/Oct/2026, 11:55:33 pm (UTC)'!
-acumulateEnEsteBalance: unBalanceAcumuladoParcial 
-	^ unBalanceAcumuladoParcial + value! !
-
 !Deposit methodsFor: 'balance' stamp: 'HAW 25/May/2019, 2:25:02 pm (UTC)'!
 affectBalance: aBalance
 
@@ -403,13 +326,9 @@ value
 	^ value! !
 
 
-!Deposit methodsFor: 'as yet unclassified' stamp: 'HAW 23/Oct/2026, 7:48:54 pm (UTC)'!
-reportOnThisBuffer: aReportBuffer 
-	aReportBuffer reportOnThisDeposit: self.! !
-
-!Deposit methodsFor: 'as yet unclassified' stamp: 'HAW 21/Oct/2026, 1:02:19 am (UTC)'!
-sosParteDeEstaTransaccion: aPataDeDeposito 
-	self shouldBeImplemented.! !
+!Deposit methodsFor: 'as yet unclassified' stamp: 'HAW 24/Oct/2026, 12:33:43 pm (UTC)'!
+accept: aReportBuffer 
+	aReportBuffer visitDeposit: self.! !
 
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
@@ -482,15 +401,15 @@ value
 	^ transferencia value! !
 
 
-!DepositLeg methodsFor: 'visitor' stamp: 'HAW 23/Oct/2026, 7:54:08 pm (UTC)'!
-reportOnThisBuffer: aReportBuffer 
+!DepositLeg methodsFor: 'visitor' stamp: 'HAW 24/Oct/2026, 12:34:53 pm (UTC)'!
+accept: aReportBuffer 
 	
-	aReportBuffer reportOnThisDepositLeg: self. ! !
+	aReportBuffer visitDepositLeg: self. ! !
 
-!DepositLeg methodsFor: 'visitor' stamp: 'HAW 23/Oct/2026, 8:18:22 pm (UTC)'!
+!DepositLeg methodsFor: 'visitor' stamp: 'HAW 24/Oct/2026, 12:34:53 pm (UTC)'!
 reportTransferOnThisReport: anAccountReporter 
 	
-	anAccountReporter reportOnThisDepositLeg: self.! !
+	anAccountReporter visitDepositLeg: self.! !
 
 
 !classDefinition: #WithdrawLeg category: #'Portfolio-Solucion'!
@@ -499,7 +418,6 @@ TransferLeg subclass: #WithdrawLeg
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Portfolio-Solucion'!
-
 
 !WithdrawLeg methodsFor: 'balance' stamp: 'HAW 22/Oct/2026, 6:08:13 pm (UTC)'!
 affectBalance: aBalance
@@ -513,15 +431,15 @@ value
 	^ transferencia value! !
 
 
-!WithdrawLeg methodsFor: 'visitor' stamp: 'HAW 23/Oct/2026, 7:55:33 pm (UTC)'!
-reportOnThisBuffer: aReportBuffer 
+!WithdrawLeg methodsFor: 'visitor' stamp: 'HAW 24/Oct/2026, 12:33:57 pm (UTC)'!
+accept: aReportBuffer 
 	
-	aReportBuffer reportOnThisWithdrawLeg: self. ! !
+	aReportBuffer visitWithdrawLeg: self. ! !
 
-!WithdrawLeg methodsFor: 'visitor' stamp: 'HAW 23/Oct/2026, 8:16:08 pm (UTC)'!
+!WithdrawLeg methodsFor: 'visitor' stamp: 'HAW 24/Oct/2026, 12:33:57 pm (UTC)'!
 reportTransferOnThisReport: anAccountReporter 
 	
-	anAccountReporter reportOnThisWithdrawLeg: self.! !
+	anAccountReporter visitWithdrawLeg: self.! !
 
 
 !classDefinition: #Withdraw category: #'Portfolio-Solucion'!
@@ -553,10 +471,10 @@ value
 	^ value! !
 
 
-!Withdraw methodsFor: 'visitor' stamp: 'HAW 23/Oct/2026, 7:52:23 pm (UTC)'!
-reportOnThisBuffer: aReportBuffer 
+!Withdraw methodsFor: 'visitor' stamp: 'HAW 24/Oct/2026, 12:34:07 pm (UTC)'!
+accept: aReportBuffer 
 	
-	aReportBuffer reportOnThisWithdraw: self. ! !
+	aReportBuffer visitWithdraw: self. ! !
 
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
@@ -570,44 +488,169 @@ for: aValue
 	^ self new initializeFor: aValue ! !
 
 
-!classDefinition: #TransferNetReporter category: #'Portfolio-Solucion'!
-Object subclass: #TransferNetReporter
-	instanceVariableNames: 'account1 acc'
+!classDefinition: #AccountVisitor category: #'Portfolio-Solucion'!
+Object subclass: #AccountVisitor
+	instanceVariableNames: 'reportedAccount'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Portfolio-Solucion'!
 
-!TransferNetReporter methodsFor: 'initialization' stamp: 'HAW 23/Oct/2026, 8:16:57 pm (UTC)'!
-initializeOn: anAccount1 
+!AccountVisitor methodsFor: 'visitor' stamp: 'HAW 24/Oct/2026, 12:45:47 pm (UTC)'!
+visitDeposit: aDeposit
+
+	self subclassResponsibility! !
+
+!AccountVisitor methodsFor: 'visitor' stamp: 'HAW 24/Oct/2026, 12:45:47 pm (UTC)'!
+visitDepositLeg: aDepositLeg
+
+	self subclassResponsibility! !
+
+!AccountVisitor methodsFor: 'visitor' stamp: 'HAW 24/Oct/2026, 12:45:47 pm (UTC)'!
+visitPortfolio: aPortfolio
+
+	self subclassResponsibility! !
+
+!AccountVisitor methodsFor: 'visitor' stamp: 'HAW 24/Oct/2026, 12:45:47 pm (UTC)'!
+visitReceptiveAccount: aReceptiveAccount
+
+	self subclassResponsibility! !
+
+!AccountVisitor methodsFor: 'visitor' stamp: 'HAW 24/Oct/2026, 12:45:47 pm (UTC)'!
+visitWithdraw: aWithdraw
+
+	self subclassResponsibility! !
+
+!AccountVisitor methodsFor: 'visitor' stamp: 'HAW 24/Oct/2026, 12:45:47 pm (UTC)'!
+visitWithdrawLeg: aWithdrawLeg
+
+	self subclassResponsibility! !
+
+
+!AccountVisitor methodsFor: 'report' stamp: 'HAW 24/Oct/2026, 12:45:51 pm (UTC)'!
+report
+
+	self subclassResponsibility! !
+
+
+!classDefinition: #AccountSummaryReporter category: #'Portfolio-Solucion'!
+AccountVisitor subclass: #AccountSummaryReporter
+	instanceVariableNames: 'reports'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'Portfolio-Solucion'!
+
+!AccountSummaryReporter methodsFor: 'init' stamp: 'HAW 23/Oct/2026, 6:33:40 pm (UTC)'!
+initializeOn: anAccount 
 	
-	account1 := anAccount1.
-	acc  := 0! !
+	reportedAccount := anAccount.
+	reports := OrderedCollection new.! !
 
 
-!TransferNetReporter methodsFor: 'report' stamp: 'HAW 23/Oct/2026, 8:17:40 pm (UTC)'!
-reportTransferNet
+!AccountSummaryReporter methodsFor: 'report' stamp: 'HAW 24/Oct/2026, 12:31:11 pm (UTC)'!
+report
 	
-	account1 reportTransferOnThisReport: self.
-	^ acc! !
-
-
-!TransferNetReporter methodsFor: 'visits' stamp: 'HAW 23/Oct/2026, 8:18:53 pm (UTC)'!
-reportOnThisDepositLeg: aDepositLeg 
+	reportedAccount accept: self.
 	
-	acc := acc + aDepositLeg value! !
+	^ reports ! !
 
-!TransferNetReporter methodsFor: 'visits' stamp: 'HAW 23/Oct/2026, 8:16:33 pm (UTC)'!
-reportOnThisWithdrawLeg: aWithdrawLeg 
+
+!AccountSummaryReporter methodsFor: 'visitor' stamp: 'HAW 24/Oct/2026, 12:33:43 pm (UTC)'!
+visitDeposit: aDeposit 
+
+	reports add: 'Depósito por ', (aDeposit value asString), '.'! !
+
+!AccountSummaryReporter methodsFor: 'visitor' stamp: 'HAW 24/Oct/2026, 12:34:53 pm (UTC)'!
+visitDepositLeg: aDepositLeg 
 	
-	acc := acc - aWithdrawLeg value.! !
+	reports add: 'Entrada por transferencia de ', (aDepositLeg value asString) , '.'! !
+
+!AccountSummaryReporter methodsFor: 'visitor' stamp: 'HAW 24/Oct/2026, 12:34:41 pm (UTC)'!
+visitPortfolio: aPortfolio 
+	
+	reports add: 'Balance = ', aPortfolio balance asString , '.'.! !
+
+!AccountSummaryReporter methodsFor: 'visitor' stamp: 'HAW 24/Oct/2026, 12:34:21 pm (UTC)'!
+visitReceptiveAccount: aReceptiveAccount 
+	
+	reports add: 'Balance = ', aReceptiveAccount balance asString , '.'.! !
+
+!AccountSummaryReporter methodsFor: 'visitor' stamp: 'HAW 24/Oct/2026, 12:34:07 pm (UTC)'!
+visitWithdraw: aWithdraw 
+	
+	reports add: 'Extráccion por ', (aWithdraw value asString), '.'.! !
+
+!AccountSummaryReporter methodsFor: 'visitor' stamp: 'HAW 24/Oct/2026, 12:33:57 pm (UTC)'!
+visitWithdrawLeg: aWithdrawLeg 
+	
+	reports add: 'Salida por transferencia de ', (aWithdrawLeg value asString) , '.'! !
 
 "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
 
-!classDefinition: 'TransferNetReporter class' category: #'Portfolio-Solucion'!
-TransferNetReporter class
+!classDefinition: 'AccountSummaryReporter class' category: #'Portfolio-Solucion'!
+AccountSummaryReporter class
 	instanceVariableNames: ''!
 
-!TransferNetReporter class methodsFor: 'instance creation' stamp: 'HAW 23/Oct/2026, 8:12:50 pm (UTC)'!
+!AccountSummaryReporter class methodsFor: 'instance creation' stamp: 'HAW 23/Oct/2026, 6:19:36 pm (UTC)'!
+on: anAccount1 
+	
+	^self new initializeOn: anAccount1 ! !
+
+
+!classDefinition: #AccountTransferNetReporter category: #'Portfolio-Solucion'!
+AccountVisitor subclass: #AccountTransferNetReporter
+	instanceVariableNames: 'total'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'Portfolio-Solucion'!
+
+!AccountTransferNetReporter methodsFor: 'initialization' stamp: 'HAW 24/Oct/2026, 1:14:25 pm (UTC)'!
+initializeOn: anAccount1 
+	
+	reportedAccount := anAccount1.
+	total  := 0! !
+
+
+!AccountTransferNetReporter methodsFor: 'report' stamp: 'HAW 24/Oct/2026, 1:14:25 pm (UTC)'!
+report
+	
+	reportedAccount accept: self.
+	^ total! !
+
+
+!AccountTransferNetReporter methodsFor: 'visitor' stamp: 'HAW 24/Oct/2026, 1:11:44 pm (UTC)'!
+visitDeposit: aDeposit 
+	! !
+
+!AccountTransferNetReporter methodsFor: 'visitor' stamp: 'HAW 24/Oct/2026, 1:09:39 pm (UTC)'!
+visitDepositLeg: aDepositLeg 
+	
+	total := total + aDepositLeg value! !
+
+!AccountTransferNetReporter methodsFor: 'visitor' stamp: 'HAW 24/Oct/2026, 1:23:39 pm (UTC)'!
+visitPortfolio: aPortfolio 
+	
+	! !
+
+!AccountTransferNetReporter methodsFor: 'visitor' stamp: 'HAW 24/Oct/2026, 12:42:45 pm (UTC)'!
+visitReceptiveAccount: aReceptiveAccount 
+	! !
+
+!AccountTransferNetReporter methodsFor: 'visitor' stamp: 'HAW 24/Oct/2026, 1:11:54 pm (UTC)'!
+visitWithdraw: aWithdraw 
+	! !
+
+!AccountTransferNetReporter methodsFor: 'visitor' stamp: 'HAW 24/Oct/2026, 1:09:39 pm (UTC)'!
+visitWithdrawLeg: aWithdrawLeg 
+	
+	total := total - aWithdrawLeg value.! !
+
+"-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- "!
+
+!classDefinition: 'AccountTransferNetReporter class' category: #'Portfolio-Solucion'!
+AccountTransferNetReporter class
+	instanceVariableNames: ''!
+
+!AccountTransferNetReporter class methodsFor: 'instance creation' stamp: 'HAW 23/Oct/2026, 8:12:50 pm (UTC)'!
 on: anAccount1 
 	
 	^self new initializeOn: anAccount1 ! !
@@ -663,19 +706,19 @@ TestCase subclass: #AccountReporterTests
 	poolDictionaries: ''
 	category: 'Portfolio-Solucion'!
 
-!AccountReporterTests methodsFor: 'tests' stamp: 'HAW 23/Oct/2026, 7:10:40 pm (UTC)'!
+!AccountReporterTests methodsFor: 'tests' stamp: 'HAW 24/Oct/2026, 1:11:02 pm (UTC)'!
 test01ReportadorSoloReportaBalanceDeCuentaSinTransacciones
 	
 	anAccount := ReceptiveAccount new.	
-	aReporter := AccountReporter on: anAccount.
+	aReporter := AccountSummaryReporter on: anAccount.
 	
 	self assert: aReporter report equals: {'Balance = 0.'} asOrderedCollection.! !
 
-!AccountReporterTests methodsFor: 'tests' stamp: 'HAW 23/Oct/2026, 6:58:58 pm (UTC)'!
+!AccountReporterTests methodsFor: 'tests' stamp: 'HAW 24/Oct/2026, 1:11:02 pm (UTC)'!
 test02ReportadorReportaExtraccion
 	
 	anAccount := ReceptiveAccount new.	
-	aReporter := AccountReporter on: anAccount.
+	aReporter := AccountSummaryReporter on: anAccount.
 	
 	Withdraw register: 50 on: anAccount. 
 	
@@ -683,11 +726,11 @@ test02ReportadorReportaExtraccion
 	equals: {'Extráccion por 50.'. 
 			'Balance = -50.'.} asOrderedCollection.! !
 
-!AccountReporterTests methodsFor: 'tests' stamp: 'HAW 23/Oct/2026, 6:58:58 pm (UTC)'!
+!AccountReporterTests methodsFor: 'tests' stamp: 'HAW 24/Oct/2026, 1:11:02 pm (UTC)'!
 test03ReportadorReportaDeposito
 	
 	anAccount := ReceptiveAccount new.	
-	aReporter := AccountReporter on: anAccount.
+	aReporter := AccountSummaryReporter on: anAccount.
 	
 	Deposit register: 50 on: anAccount. 
 	
@@ -696,11 +739,11 @@ test03ReportadorReportaDeposito
 			'Balance = 50.'.} 
 			asOrderedCollection.! !
 
-!AccountReporterTests methodsFor: 'tests' stamp: 'HAW 23/Oct/2026, 6:58:58 pm (UTC)'!
+!AccountReporterTests methodsFor: 'tests' stamp: 'HAW 24/Oct/2026, 1:11:02 pm (UTC)'!
 test04ReportadorReportaEntradaPorTransferencia
 	
 	anAccount := ReceptiveAccount new.	
-	aReporter := AccountReporter on: anAccount.
+	aReporter := AccountSummaryReporter on: anAccount.
 	anotherAccount := ReceptiveAccount new.	
 	
 	Transferencia desde: anotherAccount hacia: anAccount porUnMonto: 50.
@@ -710,11 +753,11 @@ test04ReportadorReportaEntradaPorTransferencia
 			'Balance = 50.'.} 
 			asOrderedCollection.! !
 
-!AccountReporterTests methodsFor: 'tests' stamp: 'HAW 23/Oct/2026, 6:58:58 pm (UTC)'!
+!AccountReporterTests methodsFor: 'tests' stamp: 'HAW 24/Oct/2026, 1:11:02 pm (UTC)'!
 test05ReportadorReportaSalidaPorTransferencia
 	
 	anAccount := ReceptiveAccount new.	
-	aReporter := AccountReporter on: anAccount.
+	aReporter := AccountSummaryReporter on: anAccount.
 	anotherAccount := ReceptiveAccount new.	
 	
 	Transferencia desde: anAccount hacia: anotherAccount porUnMonto: 50.
@@ -724,22 +767,22 @@ test05ReportadorReportaSalidaPorTransferencia
 			'Balance = -50.'.} 
 			asOrderedCollection.! !
 
-!AccountReporterTests methodsFor: 'tests' stamp: 'HAW 23/Oct/2026, 7:56:59 pm (UTC)'!
+!AccountReporterTests methodsFor: 'tests' stamp: 'HAW 24/Oct/2026, 1:11:02 pm (UTC)'!
 test06ReportadorReportaPortfolioVacio
 	
 	aPortfolio := Portfolio new.
-	aReporter := AccountReporter on: aPortfolio.
+	aReporter := AccountSummaryReporter on: aPortfolio.
 	
 	self assert: aReporter report 
 	equals: { 'Balance = 0.'.} asOrderedCollection.! !
 
-!AccountReporterTests methodsFor: 'tests' stamp: 'HAW 23/Oct/2026, 7:39:55 pm (UTC)'!
+!AccountReporterTests methodsFor: 'tests' stamp: 'HAW 24/Oct/2026, 1:11:02 pm (UTC)'!
 test07ReportadorReportaHistoriaDePortfolioConCuentas
 	
 	anAccount := ReceptiveAccount new.	
 	anotherAccount := ReceptiveAccount new.	
 	aPortfolio := (Portfolio new) add: anAccount; add: anotherAccount.
-	aReporter := AccountReporter on: aPortfolio.
+	aReporter := AccountSummaryReporter on: aPortfolio.
 	
 	Deposit register: 100 on: anAccount. 
 	Withdraw register: 77 on: anAccount. 
@@ -1070,41 +1113,65 @@ test07AccountKnowsItsTransactions
 
 !classDefinition: #TransferNetReporterTests category: #'Portfolio-Solucion'!
 TestCase subclass: #TransferNetReporterTests
-	instanceVariableNames: 'anAccount aReporter anotherAccount'
+	instanceVariableNames: 'anAccount aReporter anotherAccount aPortfolio'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'Portfolio-Solucion'!
 
-!TransferNetReporterTests methodsFor: 'as yet unclassified' stamp: 'HAW 23/Oct/2026, 8:12:41 pm (UTC)'!
-test00ReportadorReportaNetoDeTransferenciasDeCuentaSinTransferencias
+!TransferNetReporterTests methodsFor: 'tests' stamp: 'HAW 24/Oct/2026, 1:13:32 pm (UTC)'!
+test01ReportadorReportaNetoDeTransferenciasDeCuentaSinTransferencias
 
 	anAccount := ReceptiveAccount new.	
-	aReporter := TransferNetReporter on: anAccount.
+	aReporter := AccountTransferNetReporter on: anAccount.
 	
 	
-	self assert: aReporter reportTransferNet equals: 0.! !
+	self assert: aReporter report equals: 0.! !
 
-!TransferNetReporterTests methodsFor: 'as yet unclassified' stamp: 'HAW 23/Oct/2026, 8:14:47 pm (UTC)'!
-test01ReportadorReportaNetoDeTransferenciasDeCuentaConTransferencias
+!TransferNetReporterTests methodsFor: 'tests' stamp: 'HAW 24/Oct/2026, 1:13:32 pm (UTC)'!
+test02ReportadorReportaNetoDeExtraccionPorTransferencia
 
 	anAccount := ReceptiveAccount new.	
-	aReporter := TransferNetReporter on: anAccount.
+	aReporter := AccountTransferNetReporter on: anAccount.
 	anotherAccount := ReceptiveAccount new.	
 	
 	Transferencia desde: anAccount hacia: anotherAccount porUnMonto: 50.
 	
-	self assert: aReporter reportTransferNet equals: -50.! !
+	self assert: aReporter report equals: -50.! !
 
-!TransferNetReporterTests methodsFor: 'as yet unclassified' stamp: 'HAW 23/Oct/2026, 8:18:02 pm (UTC)'!
-test02ReportadorReportaNetoDeTransferenciasDeCuentaConTransferencias
+!TransferNetReporterTests methodsFor: 'tests' stamp: 'HAW 24/Oct/2026, 1:13:32 pm (UTC)'!
+test03ReportadorReportaNetoDeDepositoPorTransferencia
 
 	anAccount := ReceptiveAccount new.	
-	aReporter := TransferNetReporter on: anAccount.
+	aReporter := AccountTransferNetReporter on: anAccount.
 	anotherAccount := ReceptiveAccount new.	
 	
 	Transferencia desde: anotherAccount hacia: anAccount porUnMonto: 50.
 	
-	self assert: aReporter reportTransferNet equals: 50.! !
+	self assert: aReporter report equals: 50.! !
+
+!TransferNetReporterTests methodsFor: 'tests' stamp: 'HAW 24/Oct/2026, 1:13:32 pm (UTC)'!
+test04ReportadorReportaNetoDeCuentaConVariasTransacciones
+
+	anAccount := ReceptiveAccount new.	
+	anotherAccount := ReceptiveAccount new.	
+	
+	aReporter := AccountTransferNetReporter on: anAccount .
+	
+	Deposit register: 100 on: anAccount. 
+	Withdraw register: 50 on: anAccount. 
+	Transferencia desde: anotherAccount hacia: anAccount porUnMonto: 200.
+
+	
+	self assert: aReporter report equals: 200.! !
+
+!TransferNetReporterTests methodsFor: 'tests' stamp: 'HAW 24/Oct/2026, 1:22:58 pm (UTC)'!
+test05ReportadorReportaNetoDePortfolio
+
+	aPortfolio := Portfolio new.
+	aReporter := AccountTransferNetReporter on: aPortfolio.	
+
+	
+	self assert: aReporter report equals: 0.! !
 
 
 !classDefinition: #TransferenciaTest category: #'Portfolio-Solucion'!
