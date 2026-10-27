@@ -1,0 +1,126 @@
+6. BANCO DE EXAMEN TEÓRICO: PREGUNTAS DE PRÁCTICA DE PARCIAL
+Cuestionario elaborado siguiendo rigurosamente el formato y estilo de evaluación teórica de la cátedra en la UBA. Utilízalo para ejercitar y
+evaluar tu comprensión antes del examen:
+
+Pregunta 1 (Farley - Producción vs. Diseño):
+Explique por qué David Farley sostiene que la ingeniería de software se diferencia radicalmente de las ingenierías tradicionales en lo
+relativo a la 'producción en masa'. ¿Dónde radica el riesgo y el costo en nuestra disciplina?
+
+P: Porque la producción en otras areas de la ingeniería suele ser un proceso costoso y lento en para la manufacturacion de los productos/modelos finales mientras que en el desarrollo de software, la creacion de nuestros modelos finales es relativamente rapida y barata (necesitamos energia electrica) en comparacion. 
+Entonces el mayor riesgo/costo de nuestra disciplina es construir sistemas que no escalen y no sean modulares ni facilmente modificables.
+
+Pregunta 2 (Farley - Métodos Formales vs. Cascada):
+¿Por qué los métodos formales matemáticos no escalan para garantizar la corrección de sistemas de software complejos del mundo real?
+¿Qué falacia fundamental comparte el modelo en Cascada (*Waterfall*) con respecto a la naturaleza del desarrollo?
+
+P: Porque Este tipo de demostraciones son muy caras y lentas de hacer, ya que definir una especificacion adecuada para un programa es dificil y siempre quedan incompletas ya que a menudo el cliente tampoco tiene muy en claro que es lo que quiere. 
+El modelo en cascada/Waterfall en el contexto del desarrollo de software intenta definir una serie de pasos determinados y estaticos que se deben seguir para la construccion de un programa, cuando en realidad el proceso de desarrollo es de descubrimiento y aprendizaje.
+
+Pregunta 3 (Farley - Métricas DORA):
+Defina las dos dimensiones propuestas para medir el desempeño de equipos de software (*Stability* y *Throughput*). 
+Mencione dos métricas cuantitativas que componen cada dimensión y explique por qué velocidad y calidad no son trade-offs contrapuestos.
+
+P: Estabilidad: Mide que tan robusto es el software construido. Define 2 metricas:
+    - 1) Tasa de fallos cada vez que un cambio se implementa en el programa
+    - 2) Tasa de demora en corregir estos fallos
+   
+   Rendimiento: Mide que tan productivo es el equipo respecto de entregas de implementaciones.
+   Define 2 metricas:
+    - 1) Tasa de demora en implementar una funcionalidad (desde el primer commit hasta que entra en produccion)
+    - 2) Tasa de entregas de lo 1)
+
+
+Pregunta 4 (Alan Kay - Computer Science):
+Según Alan Kay en su respuesta de Quora, ¿por qué la educación universitaria actual ha sufrido un 'embrutecimiento' (*dumbing down*)?
+Citando a Alan Perlis, ¿cómo debe definirse la computación y en qué se diferencia de una ciencia natural tradicional?
+
+P: Por culpa de que las universidades del mundo han sufrido una transicion desde lo academico (entendimiento profundo de los fundamentos) hacia lo comercial/industrial (capacitar trabajadores para el sector).
+La computacion es la ciencia de los procesos, la computadora es solo el meta en donde se corren estos procesos. Esta ciencia se diferencia de otras mas tradicionales ya que no estudia lo natural sino lo artificial (procesos complejos y abstractos).
+
+Pregunta 5 (Petricek - Culturas de Programación):
+Describa brevemente cómo conciben la noción de 'programa' la cultura Matemática, la cultura Hacker y la cultura Gerencial. ¿Qué significa la conclusión 'Many things go' formulada por el autor?
+
+P: Para los matematicos un programa es una entidad formal que debe ser demostrado.
+Para los hackers un programa es una exploracion que busca explotar al maximo los recursos de la computadora para su ejecucion mas optima.
+Para la cultura Gerencial un programa es una serie de pasos que debe estar controlado, estructurado y debe ser vigilado paso a paso a travez de distintos protocolos.
+El autor afirma que las culturas de la programacion han permanecido separadas por mucho tiempo y no hay motivos para creer en una posible convergencia a un unico "paradigma".
+
+Pregunta 6 (Petricek - Patrones de Choque):
+Explique la diferencia entre el patrón de 'Cooptación o Reinterpretación' y el de 'Lucha por el Control de un Concepto'. Ilustre cada uno con un ejemplo histórico analizado en el texto.
+
+P: La Reinterpretación sucede cuando desde una cultura determinada se reusa un concepto de otra cultura y se le agregan nuevos matices propios de esta misma, mientras que la lucha por un concepto sucede cuando dos culturas intentan imponer su vision sobre una misma entidad alegando que las propias son las 'correctas'.
+
+Cooptacion: POO. Lucha: 
+
+Pregunta 7 (State vs. Strategy vs. Template Method):
+Compare detalladamente los patrones State, Strategy y Template Method en términos de: 
+1) Mecanismo de variabilidad empleado (herencia vs. composición), 
+2) Dinamismo temporal (en qué momento y con qué frecuencia cambia el comportamiento), y 
+3) Quién gobierna el cambio.
+
+P: 1) State varia de manera dinamica acorde al propio estado del objeto, Strategy (composicion) varia dependiendo el tipo elejido que suele ser decidio por el cliente. 
+Template method (Herencia) define un metodo con una estructura invariante en donde se delegan ciertos pasos del algoritmo a sus subclases para que se implementen de manera especifica a estas mismas.
+2) State cambia acorde al estado interno del objeto, puede suceder muchas veces y depende de cada caso.
+Strategy suele estar bindeado por un cliente desde el principio, aunque tambien puede ser modificado dinamicante por un cliente si asi se desea (por distintos trade-offs) 
+Template Method el comportamiento cambia solo por cada paso delegado a sus subclases. No deberia cambiar con frecuencia (o en absoluto)
+3) En State el cambio esta gobernado por el propio estado del objeto y sus cambios.
+En Strategy, es el cliente el que elige el tipo de Strategy que se usa.
+En Template Method, cada subclase se encarga de implementar esos pasos especificos que se les delego.
+
+Pregunta 8 (Composite - Safety vs. Transparency):
+Explique el dilema de diseño 'Safety' vs. 'Transparency' en el patrón Composite. ¿Cuál es la postura adoptada por la cátedra y cuál es la
+justificación teórica y ontológica para fundamentar dicha elección?
+
+P: En composite, el dilema es que con Safety aseguramos que cada objeto sepa responder los mensajes que DEBE saber responder, mientras que con Transparency aseguramos uniformidad respecto del trato a cada objeto ya que ambos saben responder a los mismos mensajes.
+
+La postura adoptada por la materia es: Safety ya que cada objeto se comporta como lo que define el conjunto de mensajes que sabe responder, cosa que con safety no se cumple ya que por ejemplo un objeto no compuesto deberia saber responder add: (metodo vacio).
+
+Pregunta 9 (Observer vs. Active Variables):
+Compare el patrón Observer (GoF) con el mecanismo de Active Variables en Smalltalk-80 considerando: nivel en el que operan
+(aplicación vs. compilador/entorno), acoplamiento entre emisor y receptor, y el rol de las daemons.
+
+P: El patron observer opera a nivel de aplicacion y define que el objeto observado cuenta con una coleccion de los observadores de el estado interno del observado, que son notificados ante cada cambio (con push o pull). El acoplamiento es el minimo posible.
+Mientras que el mecanismo Active Variables actua a nivel de compilador (a traves de manipulacion de bytecode), y se encarga de ejecutar procedimientos (llamados daemons) que se ejecutan cada vez que se accede/cambia la Active Variable. El acoplamiento es minimo.
+
+Pregunta 10 (Wrappers - Proxy, Decorator y Adapter):
+Construya un cuadro comparativo entre los patrones Adapter, Decorator y Proxy analizando: 
+1) Cómo se comporta su interfaz respecto a la del objeto envuelto, 
+2) Cuál es su intención de diseño principal, y 
+3) Si admiten o no composición recursiva transparente.
+
+P: Adapter: Cambia totalmente su interfaz respecto del objeto envuelto ya que su intención es la de implementar una nueva interfaz que es la que el cliente espera. 
+No admite composicion recursiva.
+
+Decorator: Implementa la misma interfaz que el objeto envuelto y ademas puede agregar mensajes ya que su intencion es agregar funcionalidad ortogonal al objeto envuelto. 
+Admite composición recursiva transparente.
+
+Proxy: Implementa exactamente la misma interfaz que el objeto envuelto ya que su intencion es la de ser un puntero con algo mas de funcionalidad tal que sirve como indireccion para proteccion, eficiencia, etc. No admite composicion recursiva.
+
+Pregunta 11 (Proxy Polimórfico en Smalltalk):
+¿Por qué un Proxy que hereda de la clase `Object` en Smalltalk no es completamente polimórfico? ¿Qué mecanismo arquitectónico se
+utiliza para solucionar esta limitación y qué rol cumple el mensaje `doesNotUnderstand:`?
+
+P: Porque hereda comportamiento que no le deberia corresponder ya que solo es un intermediario entre el cliente y el objeto. Se soluciona haciendo que el proxy herede de Nil/ProtoObject talque forwadee los mensajes que no entiende al objeto a travez de modificar doesNotUnderstand.
+
+Pregunta 12 (Visitor - Mecanismos y Trade-offs):
+¿Qué dos mecanismos o patrones de diseño subyacen en una solución modelada con Visitor? Explique la matriz de trade-offs de extensibilidad: ¿qué tipo de cambio resulta sumamente económico y qué tipo de cambio resulta sumamente costoso?
+
+P: Double-Dispatch y Composite son los patrones que surgen de las soluciones modeladas con Visitor. 
+El primero porque el visitor necesita saber que tipo de nodo esta visitando para poder aplicar la operacion correspondiente.
+El segundo porque se realizan operaciones sobre estructuras de objetos arboreas (parte-todo).
+
+Con esta solucion se gana facil extensibilidad a la hora de agregar nuevos tipos de operaciones sobre la estructura de objetos, pero se pierde facilidad de extensibilidad de nuevas clases de tipos de objetos en la estructura arborea ya que se debera definir un nuevo mensaje por cada visitor para cada nueva clase.
+
+Pregunta 13 (Active Variables - Metamodelo):
+Explique la jerarquía de clases de Active Variables (`InactiveVariable`, `ActiveVariable`, `SpecificActiveVariable`). ¿Por qué una Active Variable no debe ni necesita heredar de `ProtoObject`?
+
+P: InactiveVariable esta para poder 'desactivar' active variables de manera que no se tengan que recompilar metodos. ActiveVariable es la que representa al objeto activo y ejecuta las daemons (metodos) dependiendo de si se lee o modifica. SpecificActiveVariable esta para ejecutar un bloque especificado ante un acceso o una modificacion.
+
+
+Pregunta 14 (Fail Fast vs. Falla Robusta):
+¿En qué consiste el principio Fail Fast propuesto por Jim Shore y por qué se opone al 'Fail Slowly'? ¿Cómo se logra una 'Falla Robusta' en producción mediante un Manejador Global 
+de Errores sin que el sistema colapse por completo?
+
+P: Consiste en fallar apenas se encuentre un error, utilizando assersiones y retornando mensajes que especifiquen el tipo de error. Se opone al Fail Slowly ya que el sistema 
+eventualmente terminara fallando y sera muy dificil el debugear cual fue el error causante.
+Lo que propone el autor como punto intermedio es que se loggeen los errores en el manejador global tal que por lo menos se puedan saber que tipo de errores ocurrieron. 
